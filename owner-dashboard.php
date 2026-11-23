@@ -162,7 +162,22 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
 
           <section class="admin-section" data-panel="wallet" aria-labelledby="wallet-title" hidden>
             <div class="admin-section-heading"><div><p class="admin-eyebrow"><span data-i18n="immutableLedger">IMMUTABLE COINS LEDGER</span> / 03</p><h2 id="wallet-title" data-i18n="wallet">Wallet &amp; Transactions</h2></div><p data-i18n="walletDesc">Wallet changes use the existing transactional ledger, require a reason, prevent negative balances, and record an idempotency key.</p></div>
-            <div class="admin-panel"><div class="admin-panel-heading"><div><p class="admin-eyebrow" data-i18n="selectedAccount">SELECTED ACCOUNT</p><h3 data-i18n="walletAccount">Wallet account</h3></div></div><div data-owner-wallet-account><p class="admin-state" data-i18n="selectWalletUser">Select an account from Users to view its ledger and make a documented adjustment.</p></div></div>
+            <div class="admin-panel"><div class="admin-panel-heading"><div><p class="admin-eyebrow" data-i18n="selectedAccount">SELECTED ACCOUNT</p><h3 data-i18n="walletAccount">Wallet account</h3></div></div>
+              <form class="owner-wallet-search" data-owner-wallet-search>
+                <label>
+                  <span data-i18n="searchUsers">Search username, email, or ID</span>
+                  <input name="q" type="text" maxlength="100" dir="ltr" autocomplete="off" data-i18n-placeholder="searchPlaceholder" placeholder="Search..." />
+                </label>
+                <button class="admin-secondary-button" type="submit" data-i18n="search">Search</button>
+              </form>
+              <label class="owner-wallet-picker">
+                <span data-i18n="selectWalletAccount">Select account</span>
+                <select name="wallet_user" data-owner-wallet-picker>
+                  <option value="" data-i18n="chooseWalletAccount">Choose an account</option>
+                </select>
+              </label>
+              <div data-owner-wallet-account><p class="admin-state" data-i18n="selectWalletUser">Search or select an account to view its ledger and make a documented adjustment.</p></div>
+            </div>
             <div class="admin-panel"><div class="admin-panel-heading"><div><p class="admin-eyebrow" data-i18n="recentEntries">RECENT ENTRIES</p><h3 data-i18n="ledgerHistory">Ledger history</h3></div></div><div data-owner-ledger><p class="admin-state" data-i18n="selectWalletUser">Select an account from Users to view its ledger and make a documented adjustment.</p></div></div>
             <div class="admin-panel"><div class="admin-panel-heading"><div><p class="admin-eyebrow" data-i18n="auditedOperation">AUDITED OPERATION</p><h3 data-i18n="adjustCoins">Adjust Coins</h3></div></div>
               <form class="admin-form-grid owner-adjustment-form" data-owner-adjustment>

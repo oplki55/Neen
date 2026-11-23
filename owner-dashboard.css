@@ -475,6 +475,40 @@
   min-height: 80px;
 }
 
+.owner-wallet-search {
+  display: flex;
+  align-items: end;
+  gap: 9px;
+  margin-bottom: 10px;
+}
+
+.owner-wallet-search label,
+.owner-wallet-picker {
+  display: grid;
+  min-width: min(100%, 260px);
+  flex: 1 1 260px;
+  gap: 5px;
+  color: var(--text-secondary);
+  font-size: 8px;
+}
+
+.owner-wallet-search input,
+.owner-wallet-picker select {
+  width: 100%;
+  min-height: 36px;
+  padding: 8px 9px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+  font-size: 9px;
+}
+
+.owner-wallet-picker {
+  margin-bottom: 12px;
+}
+
 .owner-detail-heading {
   display: flex;
   align-items: flex-start;

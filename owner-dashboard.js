@@ -54,6 +54,7 @@
       searchUsers: "Search username, email, or ID", status: "Status", sort: "Sort", search: "Search", refresh: "Refresh",
       selectUser: "Select a user to review account and wallet details.", walletDesc: "Wallet changes use the existing transactional ledger, require a reason, prevent negative balances, and record an idempotency key.",
       walletAccount: "Wallet account", ledgerHistory: "Ledger history", selectWalletUser: "Select an account from Users to view its ledger and make a documented adjustment.",
+      selectWalletAccount: "Select account", chooseWalletAccount: "Choose an account",
       adjustCoins: "Adjust Coins", direction: "Direction", balanceType: "Balance type", amount: "Amount",
       reason: "Reason (required)", submitAdjustment: "Submit adjustment",
       adjustmentWarning: "Every adjustment is permanent in the ledger. Verify the account, balance type, amount, and reason before submitting.",
@@ -208,6 +209,7 @@
       searchUsers: "بحث باسم المستخدم أو البريد أو الرقم", status: "الحالة", sort: "الترتيب", search: "بحث", refresh: "تحديث",
       selectUser: "اختر مستخدمًا لمراجعة الحساب والمحفظة.", walletDesc: "تُنفذ تغييرات المحفظة عبر سجل المعاملات الحالي مع سبب إلزامي ومنع الرصيد السالب ومفتاح منع التكرار.",
       walletAccount: "محفظة المستخدم", ledgerHistory: "سجل المعاملات", selectWalletUser: "اختر حسابًا من المستخدمين لعرض سجله وإجراء تعديل موثق.",
+      selectWalletAccount: "اختر الحساب", chooseWalletAccount: "اختر حسابًا",
       adjustCoins: "تعديل العملات", direction: "العملية", balanceType: "نوع الرصيد", amount: "الكمية",
       reason: "السبب (إلزامي)", submitAdjustment: "تنفيذ التعديل",
       adjustmentWarning: "يُسجل كل تعديل نهائيًا. تحقق من الحساب ونوع الرصيد والكمية والسبب قبل التنفيذ.",
@@ -512,6 +514,7 @@
     if (activePanels.includes("modules")) loadGames();
     if (activePanels.includes("news")) loadNewsTicker();
     if (activePanels.includes("activity")) loadActivity();
+    if (activePanels.includes("wallet")) loadWalletChoices();
   };
 
   const renderChart = (container, rows) => {
@@ -910,6 +913,37 @@
       renderUserDetails(user);
     } catch (error) {
       showState(container, error instanceof Error ? error.message : t("failed"), true);
+    }
+  };
+
+  const loadWalletChoices = async (query = "") => {
+    const picker = document.querySelector("[data-owner-wallet-picker]");
+    if (!(picker instanceof HTMLSelectElement)) return;
+    picker.disabled = true;
+    try {
+      const params = new URLSearchParams({ page: "1", sort: "username", per_page: "100" });
+      if (query.trim()) params.set("q", query.trim());
+      const result = await apiRequest(`/api/owner/users?${params}`);
+      picker.replaceChildren();
+      const empty = make("option", "", t("chooseWalletAccount"));
+      empty.value = "";
+      picker.append(empty);
+      result.users.forEach((user) => {
+        const option = make("option", "", `${user.username} · #${user.id} · ${formatNumber(user.coin_balance)} Coins`);
+        option.value = String(user.id);
+        if (state.selectedUser?.id === user.id) option.selected = true;
+        picker.append(option);
+      });
+      if (result.users.length === 0) {
+        const noResult = make("option", "", t("noResults"));
+        noResult.value = "";
+        noResult.disabled = true;
+        picker.append(noResult);
+      }
+    } catch (error) {
+      toast(error instanceof Error ? error.message : t("failed"), true);
+    } finally {
+      picker.disabled = false;
     }
   };
 
@@ -1501,6 +1535,31 @@
     state.userSort = "newest";
     loadUsers(1);
   });
+
+  const walletSearch = document.querySelector("[data-owner-wallet-search]");
+  if (walletSearch instanceof HTMLFormElement) {
+    walletSearch.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const query = String(new FormData(walletSearch).get("q") ?? "").trim();
+      loadWalletChoices(query);
+    });
+  }
+
+  const walletPicker = document.querySelector("[data-owner-wallet-picker]");
+  if (walletPicker instanceof HTMLSelectElement) {
+    walletPicker.addEventListener("change", async () => {
+      const userId = Number(walletPicker.value);
+      if (!Number.isSafeInteger(userId) || userId < 1) return;
+      const container = document.querySelector("[data-owner-user-detail]");
+      if (container instanceof HTMLElement) showState(container, t("loading"));
+      try {
+        const { user } = await apiRequest(`/api/owner/users/${userId}`);
+        renderUserDetails(user);
+      } catch (error) {
+        if (container instanceof HTMLElement) showState(container, error instanceof Error ? error.message : t("failed"), true);
+      }
+    });
+  }
 
   const activityForm = document.querySelector("[data-owner-activity-search]");
   if (activityForm instanceof HTMLFormElement) {
