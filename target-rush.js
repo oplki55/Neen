@@ -706,11 +706,16 @@
         const current = await api("/api/games/target-rush/sessions/current");
         attemptsRemaining = current.attempts_remaining_today;
         attempts.textContent = String(attemptsRemaining);
-        renderSession(current.session);
         if (current.session && ["started", "in_progress"].includes(current.session.status)) {
-          setStatus("Resume your active round. The server controls every target, hit, score, and the 30-second timer.");
+          targetButton.hidden = true;
+          showScreen("start");
+          startButton.disabled = false;
+          setStatus("An active round is waiting. Press Start to resume it.");
         } else if (!current.session) {
+          renderSession(null);
           setStatus("Ready when you are. Start a 30-second round to use one of your free daily attempts.");
+        } else {
+          renderSession(current.session);
         }
       } catch (error) {
         if (error.code === "AUTH_REQUIRED") {
