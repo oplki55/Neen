@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#FFF2F7" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <meta name="description" content="Choose an original NEEN picture and put the pieces back together." />
+    <title>Picture Jigsaw — NEEN</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Exo+2:wght@400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700&family=Oxanium:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css?v=20261121u3" />
+    <link rel="stylesheet" href="events.css" />
+    <link rel="stylesheet" href="picture-jigsaw.css?v=20261121z" />
+    <script src="script.js?v=20261121fast" defer></script>
+    <script src="picture-jigsaw.js?v=20261121z" defer></script>
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="site-header">
+        <span class="wordmark wordmark-lockup"><a href="index.html" aria-label="NEEN home">NEEN<span aria-hidden="true">.</span></a><span class="palestine-flag-badge" title="فلسطين • Palestine" aria-label="علم فلسطين"><svg viewBox="0 0 36 24" width="32" height="21" aria-hidden="true"><rect width="36" height="8" y="0" fill="#111111"/><rect width="36" height="8" y="8" fill="#ffffff"/><rect width="36" height="8" y="16" fill="#149954"/><polygon points="0,0 16,12 0,24" fill="#e4312b"/></svg></span></span>
+        <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="site-navigation"><span></span><span></span></button>
+        <nav class="site-navigation" id="site-navigation" aria-label="Main navigation">
+          <a class="nav-link" href="index.html">Home</a><a class="nav-link" href="videos.html">Videos</a><a class="nav-link" href="about.html">About Me</a><a class="nav-link" href="gallery.html">Gallery</a><a class="nav-link is-active" href="events.html" aria-current="page">Events</a><a class="nav-link" href="diamonds.html">Diamonds</a><a class="nav-cta" href="account.html"><span>Account</span><span class="arrow" aria-hidden="true">↗</span></a>
+        </nav>
+      </header>
+      <main class="page-main events-page jigsaw-page">
+        <nav class="events-crumbs section-wrap" aria-label="Breadcrumb"><a href="events.html">Events Hub</a><span aria-hidden="true">/</span><span>Picture Jigsaw</span></nav>
+        <section class="jigsaw-game section-wrap" aria-labelledby="jigsaw-title">
+          <div class="jigsaw-intro">
+            <p class="eyebrow section-eyebrow">NEEN ORIGINALS <span> / PICTURE JIGSAW</span></p>
+            <h1 id="jigsaw-title">PUT THE <span>PICTURE TOGETHER.</span></h1>
+            <p class="page-lede">Choose a NEEN original, then swap the picture tiles until every piece is back in place. Your board is saved to your account.</p>
+          </div>
+          <section class="jigsaw-panel" aria-label="Picture Jigsaw game">
+            <div class="jigsaw-topline">
+              <p class="jigsaw-attempt-count">FREE TODAY <strong data-jigsaw-attempts>--</strong></p>
+              <p class="jigsaw-status" data-jigsaw-status role="status" aria-live="polite">Loading the three original pictures…</p>
+            </div>
+            <div class="jigsaw-wallet" aria-label="Coins wallet">
+              <p><span>TOTAL COINS</span><strong data-jigsaw-total-coins>--</strong></p>
+              <p><span>EARNED COINS</span><strong data-jigsaw-earned-coins>--</strong></p>
+            </div>
+
+            <div class="jigsaw-picker" data-jigsaw-picker hidden>
+              <h2>Choose your picture</h2>
+              <p>Every original is shown at its natural proportions.</p>
+              <div class="jigsaw-image-options" data-jigsaw-options></div>
+              <div class="jigsaw-picker-actions">
+                <button class="button button-primary" type="button" data-jigsaw-start disabled><span>Start this picture</span><span class="button-arrow" aria-hidden="true">↗</span></button>
+              </div>
+              <p class="jigsaw-signin" data-jigsaw-signin hidden>Sign in or create an account to save and play a server-verified game. <a href="account.html">Go to your account ↗</a></p>
+            </div>
+
+            <div class="jigsaw-board-view" data-jigsaw-view hidden>
+              <div class="jigsaw-board-heading">
+                <div>
+                  <p class="jigsaw-board-label">PICTURE IN PROGRESS</p>
+                  <h2 data-jigsaw-image-title></h2>
+                </div>
+                <div class="jigsaw-progress">
+                  <span data-jigsaw-progress dir="ltr">0 / 16</span>
+                  <small>pieces in place</small>
+                </div>
+              </div>
+              <div class="jigsaw-board-wrap">
+                <div class="jigsaw-board" data-jigsaw-board aria-label="Interactive Picture Jigsaw board" aria-busy="true"></div>
+              </div>
+              <p class="jigsaw-hint" data-jigsaw-hint>Drag one piece onto another to swap them. On a keyboard, select a piece, then select its destination.</p>
+              <div class="jigsaw-actions">
+                <button class="button button-primary" type="button" data-jigsaw-again hidden><span>Play again</span><span class="button-arrow" aria-hidden="true">↗</span></button>
+                <button class="outline-link" type="button" data-jigsaw-choose>Choose another picture</button>
+              </div>
+              <div class="jigsaw-complete" data-jigsaw-complete hidden>
+                <span aria-hidden="true">✦</span>
+                <h3>Picture complete.</h3>
+                <p>The server confirmed the finished board.</p>
+                <p class="jigsaw-reward" data-jigsaw-reward hidden></p>
+              </div>
+            </div>
+          </section>
+          <p class="jigsaw-footnote">Three free starts per account per Egypt-local day. Every verified win credits 50 Earned Coins once.</p>
+        </section>
+      </main>
+      <footer class="site-footer">
+        <a class="wordmark footer-wordmark" href="index.html">NEEN<span>.</span></a><p>FREE FIRE CONTENT <span>·</span> @NEEN_0O</p>
+        <div class="footer-links"><a href="videos.html">VIDEOS</a><a href="about.html">ABOUT</a><a href="gallery.html">GALLERY</a><a href="events.html">EVENTS</a><a href="diamonds.html">DIAMONDS</a></div>
+        <a class="back-to-top" href="events.html">EVENTS HUB <span aria-hidden="true">↑</span></a>
+      </footer>
+    </div>
+  </body>
+</html>

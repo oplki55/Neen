@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#FFF2F7" />
+    <meta name="description" content="Create and manage your NEEN account." />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <title>Account — NEEN</title>
+    <link rel="stylesheet" href="styles.css?v=20261121profile1" />
+    <link rel="stylesheet" href="account.css?v=20261121accountui1" />
+    <link rel="stylesheet" href="sakura-profile-ui.css?v=20261121ui6" />
+    <script src="script.js?v=20261121fast" defer></script>
+    <script src="account.js?v=20261121accountscroll5" defer></script>
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="site-header">
+        <span class="wordmark wordmark-lockup"><a href="index.html" aria-label="NEEN home">NEEN<span aria-hidden="true">.</span></a><span class="palestine-flag-badge" title="فلسطين • Palestine" aria-label="علم فلسطين"><svg viewBox="0 0 36 24" width="32" height="21" aria-hidden="true"><rect width="36" height="8" y="0" fill="#111111"/><rect width="36" height="8" y="8" fill="#ffffff"/><rect width="36" height="8" y="16" fill="#149954"/><polygon points="0,0 16,12 0,24" fill="#e4312b"/></svg></span></span>
+        <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="site-navigation">
+          <span></span><span></span>
+        </button>
+        <nav class="site-navigation" id="site-navigation" aria-label="Main navigation">
+          <a class="nav-link" href="index.html">Home</a>
+          <a class="nav-link is-active" href="account.html" aria-current="page">Account</a>
+        </nav>
+      </header>
+
+      <main class="page-main account-page">
+        <section class="account-intro section-wrap" aria-labelledby="account-title">
+          <p class="eyebrow section-eyebrow">NEEN COMMUNITY <span>/ ACCOUNT</span></p>
+          <h1 id="account-title">YOUR NEEN <span>PLAYER HUB.</span></h1>
+          <p class="page-lede">Sign in or create an account to track your games, player profile, and Coins wallet.</p>
+        </section>
+
+        <section class="account-content section-wrap" aria-label="Account management">
+          <div class="account-card" data-auth-panel>
+            <div class="account-tabs" data-auth-tabs>
+              <button class="account-tab is-active" type="button" data-mode="login" aria-pressed="true">Sign in</button>
+              <button class="account-tab" type="button" data-mode="register" aria-pressed="false">Create account</button>
+            </div>
+
+            <div class="account-copy" data-email-verification-notice hidden>
+              <p data-email-verification-copy>Please verify your email within 48 hours before signing in.</p>
+              <button class="button button-primary account-submit" type="button" data-resend-verification>Resend confirmation link</button>
+            </div>
+
+            <form class="account-form" id="login-form" novalidate>
+              <h2>Welcome back.</h2>
+              <label class="account-field">
+                <span>Email or username</span>
+                <input name="identifier" type="text" autocomplete="username" maxlength="254" required />
+              </label>
+              <label class="account-field">
+                <span>Password</span>
+                <input name="password" type="password" autocomplete="current-password" maxlength="72" required />
+              </label>
+              <label class="account-remember">
+                <input name="remember_me" type="checkbox" value="1" checked />
+                <span>Remember me</span>
+              </label>
+              <button class="button button-primary account-submit" type="submit">Sign in</button>
+              <button class="account-text-button" type="button" data-show-forgot>Forgot your password?</button>
+            </form>
+
+            <form class="account-form" id="register-form" hidden novalidate>
+              <h2>Create your account.</h2>
+              <label class="account-field">
+                <span>Username</span>
+                <input name="username" type="text" autocomplete="username" minlength="3" maxlength="50" pattern="[A-Za-z0-9][A-Za-z0-9_.-]{2,49}" required />
+                <small>3–50 letters, numbers, dots, underscores, or hyphens.</small>
+              </label>
+              <label class="account-field">
+                <span>Email</span>
+                <input name="email" type="email" autocomplete="email" maxlength="254" required />
+              </label>
+              <label class="account-field">
+                <span>Display name</span>
+                <input name="display_name" type="text" autocomplete="nickname" maxlength="80" />
+              </label>
+              <label class="account-field">
+                <span>Password</span>
+                <input name="password" type="password" autocomplete="new-password" minlength="12" maxlength="72" required />
+                <small>Use at least 12 characters.</small>
+              </label>
+              <button class="button button-primary account-submit" type="submit">Create account</button>
+            </form>
+
+            <form class="account-form" id="forgot-form" hidden novalidate>
+              <h2>Reset your password.</h2>
+              <p class="account-copy">Enter your account email. If an active account uses it, we’ll send a reset link.</p>
+              <label class="account-field">
+                <span>Email</span>
+                <input name="email" type="email" autocomplete="email" maxlength="254" required />
+              </label>
+              <button class="button button-primary account-submit" type="submit">Send reset link</button>
+              <button class="account-text-button" type="button" data-show-login>Back to sign in</button>
+            </form>
+
+            <form class="account-form" id="reset-form" hidden novalidate>
+              <h2>Choose a new password.</h2>
+              <label class="account-field">
+                <span>New password</span>
+                <input name="password" type="password" autocomplete="new-password" minlength="12" maxlength="72" required />
+                <small>Use at least 12 characters. Reset links expire after 60 minutes.</small>
+              </label>
+              <button class="button button-primary account-submit" type="submit">Reset password</button>
+            </form>
+          </div>
+
+          <div class="account-card account-profile" data-profile-panel hidden>
+            <header class="profile-hub-heading">
+              <div>
+                <p class="eyebrow section-eyebrow">NEEN COMMUNITY <span>/ PLAYER HUB</span></p>
+                <h2>Player Profile Hub</h2>
+                <p class="account-copy">Your games, progress, wallet, and account settings in one place.</p>
+              </div>
+              <a class="profile-community-link" href="events-profile.html">Community activity <span aria-hidden="true">↗</span></a>
+            </header>
+
+            <section class="gamer-hero" aria-label="Player profile overview">
+              <div class="gamer-avatar-frame">
+                <img data-hero-avatar src="icone/snoop.webp" alt="Player avatar" decoding="async" referrerpolicy="no-referrer" />
+                <span class="gamer-level-chip">LV <strong data-island-level>1</strong></span>
+              </div>
+              <div class="gamer-hero-details">
+                <div class="gamer-hero-top">
+                  <div>
+                    <p class="gamer-country" data-hero-country>NEEN PLAYER</p>
+                    <h3 data-hero-display-name>Player</h3>
+                    <p class="gamer-username" data-hero-username dir="ltr">@player</p>
+                  </div>
+                  <a class="gamer-coin-badge" href="diamonds.html#coins-topup" title="Add or view NEEN Coins">
+                    <img src="assets/hero-loot/gold-coin.webp" alt="" aria-hidden="true" />
+                    <span class="gamer-coin-badge-copy">
+                      <small>NEEN COINS</small>
+                      <strong data-hero-coin-balance>0</strong>
+                    </span>
+                  </a>
+                </div>
+                <div class="account-identity gamer-identity" data-identity></div>
+                <p class="gamer-bio" data-hero-bio>Your next adventure starts here.</p>
+                <div class="gamer-xp-block">
+                  <div><span>NeNo Land XP</span><strong data-island-xp dir="ltr">0 / 100 XP</strong></div>
+                  <span class="gamer-xp-track"><span data-island-xp-fill></span></span>
+                </div>
+                <p class="free-fire-id-pill" data-free-fire-id-wrapper hidden>
+                  <span>Free Fire ID</span>
+                  <strong data-free-fire-id dir="ltr"></strong>
+                  <button type="button" data-copy-free-fire-id aria-label="Copy Free Fire ID">Copy</button>
+                </p>
+              </div>
+            </section>
+
+            <nav class="profile-tablist" aria-label="Profile sections" role="tablist" data-profile-tabs>
+              <button type="button" class="profile-tab is-active" role="tab" id="profile-tab-overview" aria-controls="profile-panel-overview" aria-selected="true" tabindex="0" data-profile-tab="overview">Overview</button>
+              <button type="button" class="profile-tab" role="tab" id="profile-tab-games" aria-controls="profile-panel-games" aria-selected="false" tabindex="-1" data-profile-tab="games">Games &amp; Codex</button>
+              <button type="button" class="profile-tab" role="tab" id="profile-tab-wallet" aria-controls="profile-panel-wallet" aria-selected="false" tabindex="-1" data-profile-tab="wallet">Wallet &amp; Attendance</button>
+              <button type="button" class="profile-tab" role="tab" id="profile-tab-edit" aria-controls="profile-panel-edit" aria-selected="false" tabindex="-1" data-profile-tab="edit">Edit Profile &amp; Security</button>
+            </nav>
+
+            <section class="profile-tab-panel" id="profile-panel-overview" role="tabpanel" aria-labelledby="profile-tab-overview" data-profile-content="overview">
+              <div class="profile-section-heading">
+                <div><p class="eyebrow section-eyebrow">PLAYER DATA <span>/ OVERVIEW</span></p><h3>Gaming stats</h3></div>
+                <a class="profile-inline-link" href="sunny-island.html">Explore NeNo Land ↗</a>
+              </div>
+              <div class="gamer-stats-grid" aria-live="polite">
+                <article class="gamer-stat-card"><span>Island Level</span><strong data-stat-level>1</strong></article>
+                <article class="gamer-stat-card"><span>Total XP</span><strong data-stat-xp>0</strong></article>
+                <article class="gamer-stat-card"><span>Adventures</span><strong data-stat-adventures>0</strong></article>
+                <article class="gamer-stat-card"><span>Zones found</span><strong data-stat-zones>0 / 4</strong></article>
+                <article class="gamer-stat-card"><span>Attendance streak</span><strong data-stat-attendance>0 / 7</strong></article>
+                <article class="gamer-stat-card"><span>Earned Coins</span><strong data-stat-earned-coins>—</strong></article>
+              </div>
+              <div class="profile-section-heading">
+                <div><p class="eyebrow section-eyebrow">PLAY TODAY <span>/ DAILY STARTS</span></p><h3>Free attempts &amp; quick play</h3></div>
+              </div>
+              <p class="profile-data-state" data-game-attempts-state role="status">Loading your game attempts…</p>
+              <div class="profile-game-grid" data-game-attempts aria-live="polite"></div>
+            </section>
+
+            <section class="profile-tab-panel" id="profile-panel-games" role="tabpanel" aria-labelledby="profile-tab-games" data-profile-content="games" hidden>
+              <div class="profile-section-heading">
+                <div><p class="eyebrow section-eyebrow">NENO LAND <span>/ COLLECTION</span></p><h3>Island Codex</h3></div>
+                <p class="codex-progress" data-codex-progress>Loading collection…</p>
+              </div>
+              <p class="account-copy">Discover items across the island to reveal their artwork and add them to your collection.</p>
+              <div class="profile-codex-grid" data-island-codex aria-live="polite"></div>
+            </section>
+
+            <section class="profile-tab-panel" id="profile-panel-wallet" role="tabpanel" aria-labelledby="profile-tab-wallet" data-profile-content="wallet" hidden>
+              <div class="profile-section-heading">
+                <div><p class="eyebrow section-eyebrow">NEEN COINS <span>/ WALLET</span></p><h3>Wallet &amp; attendance</h3></div>
+              </div>
+              <div class="account-wallet">
+                <div class="wallet-balances" aria-label="Coins balance breakdown">
+                  <p><strong data-wallet-balance>—</strong><span>Total Coins</span></p>
+                  <p><b data-purchased-balance>—</b><span>Purchased</span></p>
+                  <p><b data-earned-balance>—</b><span>Earned</span></p>
+                </div>
+                <small>NEEN Coins are separate from Free Fire Diamonds.</small>
+              </div>
+              <section class="account-coins-section attendance-section" aria-labelledby="attendance-title">
+                <p class="eyebrow section-eyebrow">DAILY REWARDS <span>/ CHECK-IN</span></p>
+                <h3 id="attendance-title">Your 7-day attendance cycle.</h3>
+                <p class="account-copy" data-attendance-status role="status" aria-live="polite">Loading Cairo-time attendance…</p>
+                <div class="attendance-summary">
+                  <p><strong data-attendance-progress>0 / 7</strong><span>days in this cycle</span></p>
+                  <p><strong>100</strong><span>Earned Coins per day</span></p>
+                  <p><strong>700</strong><span>Coins across 7 days</span></p>
+                </div>
+                <ol class="attendance-days" data-attendance-days aria-label="Seven day attendance progress"></ol>
+                <button class="button button-primary account-submit" type="button" data-attendance-checkin disabled>
+                  Check in for 100 Earned Coins
+                </button>
+              </section>
+              <section class="account-coins-section" aria-labelledby="coin-purchase-title">
+                <p class="eyebrow section-eyebrow">COIN PACKAGES <span>/ PURCHASE</span></p>
+                <h3 id="coin-purchase-title">Add Purchased Coins.</h3>
+                <p class="account-copy" data-coins-config-message>Loading available packages and payment methods…</p>
+                <form class="account-form" id="coin-order-form" hidden novalidate>
+                  <label class="account-field">
+                    <span>Package</span>
+                    <select name="package_id" required></select>
+                  </label>
+                  <label class="account-field">
+                    <span>Payment method</span>
+                    <select name="payment_method_id" required></select>
+                  </label>
+                  <p class="account-payment-instructions" data-payment-instructions></p>
+                  <button class="button button-primary account-submit" type="submit">Create payment request</button>
+                </form>
+              </section>
+              <section class="account-coins-section" aria-labelledby="coin-orders-title">
+                <p class="eyebrow section-eyebrow">PURCHASE HISTORY <span>/ REVIEW STATUS</span></p>
+                <h3 id="coin-orders-title">Your Coin requests.</h3>
+                <div class="coin-order-list" data-coin-orders></div>
+              </section>
+              <section class="account-coins-section" aria-labelledby="coin-ledger-title">
+                <p class="eyebrow section-eyebrow">WALLET ACTIVITY <span>/ LEDGER</span></p>
+                <h3 id="coin-ledger-title">Coins history.</h3>
+                <ol class="coin-ledger-list" data-coin-ledger></ol>
+              </section>
+            </section>
+
+            <section class="profile-tab-panel" id="profile-panel-edit" role="tabpanel" aria-labelledby="profile-tab-edit" data-profile-content="edit" hidden>
+              <div class="profile-section-heading">
+                <div><p class="eyebrow section-eyebrow">ACCOUNT SETTINGS <span>/ PRIVATE</span></p><h3>Edit profile &amp; security</h3></div>
+              </div>
+              <div class="profile-security-card">
+                <div><strong>Email verification</strong><p data-security-email-state>Your verification status will appear here.</p></div>
+                <button type="button" class="profile-secondary-button" data-resend-profile-verification hidden>Resend confirmation link</button>
+                <div><strong>Password</strong><p>Change it securely while signed in, or use email recovery if you forgot it.</p></div>
+                <button type="button" class="profile-secondary-button" data-password-reset>Send password reset link</button>
+              </div>
+              <form class="account-form profile-edit-form" id="password-change-form" novalidate>
+                <label class="account-field">
+                  <span>Current password</span>
+                  <input name="current_password" type="password" autocomplete="current-password" maxlength="1024" required />
+                </label>
+                <label class="account-field">
+                  <span>New password</span>
+                  <input name="new_password" type="password" autocomplete="new-password" minlength="12" maxlength="72" required />
+                  <small>Use at least 12 characters.</small>
+                </label>
+                <button class="button button-primary account-submit" type="submit">Change password</button>
+              </form>
+              <form class="account-form profile-edit-form" id="profile-form" novalidate>
+                <div class="account-field profile-avatar-field">
+                  <span>Choose an avatar</span>
+                  <span class="avatar-preview-wrap"><img data-avatar-preview src="icone/snoop.webp" alt="Selected avatar preview" loading="lazy" decoding="async" referrerpolicy="no-referrer" /></span>
+                  <span class="avatar-preset-grid" data-avatar-grid>
+                    <button class="avatar-preset is-selected" type="button" data-avatar-preset="icone/snoop.webp" aria-pressed="true" aria-label="NEEN default avatar"><img src="icone/snoop.webp" alt="" loading="lazy" decoding="async" /></button>
+                    <button class="avatar-preset" type="button" data-avatar-preset="assets/hero-loot/snoop-sticker-01.webp" aria-pressed="false" aria-label="Avatar preset 1"><img src="assets/hero-loot/snoop-sticker-01.webp" alt="" loading="lazy" decoding="async" /></button>
+                    <button class="avatar-preset" type="button" data-avatar-preset="assets/hero-loot/snoop-sticker-02.webp" aria-pressed="false" aria-label="Avatar preset 2"><img src="assets/hero-loot/snoop-sticker-02.webp" alt="" loading="lazy" decoding="async" /></button>
+                    <button class="avatar-preset" type="button" data-avatar-preset="assets/hero-loot/snoop-sticker-03.webp" aria-pressed="false" aria-label="Avatar preset 3"><img src="assets/hero-loot/snoop-sticker-03.webp" alt="" loading="lazy" decoding="async" /></button>
+                    <button class="avatar-preset" type="button" data-avatar-preset="assets/hero-loot/snoop-sticker-04.webp" aria-pressed="false" aria-label="Avatar preset 4"><img src="assets/hero-loot/snoop-sticker-04.webp" alt="" loading="lazy" decoding="async" /></button>
+                    <button class="avatar-preset" type="button" data-avatar-preset="assets/hero-loot/snoop-sticker-05.webp" aria-pressed="false" aria-label="Avatar preset 5"><img src="assets/hero-loot/snoop-sticker-05.webp" alt="" loading="lazy" decoding="async" /></button>
+                    <button class="avatar-preset" type="button" data-avatar-preset="assets/hero-loot/snoop-sticker-06.webp" aria-pressed="false" aria-label="Avatar preset 6"><img src="assets/hero-loot/snoop-sticker-06.webp" alt="" loading="lazy" decoding="async" /></button>
+                    <button class="avatar-preset" type="button" data-avatar-preset="assets/hero-loot/snoop-sticker-07.webp" aria-pressed="false" aria-label="Avatar preset 7"><img src="assets/hero-loot/snoop-sticker-07.webp" alt="" loading="lazy" decoding="async" /></button>
+                    <button class="avatar-preset" type="button" data-avatar-preset="assets/hero-loot/snoop-sticker-08.webp" aria-pressed="false" aria-label="Avatar preset 8"><img src="assets/hero-loot/snoop-sticker-08.webp" alt="" loading="lazy" decoding="async" /></button>
+                    <button class="avatar-preset" type="button" data-avatar-preset="assets/hero-loot/snoop-sticker-09.webp" aria-pressed="false" aria-label="Avatar preset 9"><img src="assets/hero-loot/snoop-sticker-09.webp" alt="" loading="lazy" decoding="async" /></button>
+                  </span>
+                  <label for="profile-avatar-url">Custom image URL (HTTPS)</label>
+                  <span class="account-copy" id="avatar-url-help">Or select one of the project presets above.</span>
+                  <input id="profile-avatar-url" name="avatar_url" type="text" maxlength="255" inputmode="url" autocomplete="url" placeholder="https://example.com/avatar.png" data-avatar-url aria-describedby="avatar-url-help" />
+                </div>
+                <label class="account-field">
+                  <span>Display name</span>
+                  <input name="display_name" type="text" autocomplete="nickname" maxlength="80" />
+                </label>
+                <label class="account-field">
+                  <span>Full name</span>
+                  <input name="full_name" type="text" autocomplete="name" maxlength="150" />
+                </label>
+                <label class="account-field">
+                  <span>Country</span>
+                  <input name="country" type="text" autocomplete="country-name" maxlength="80" />
+                </label>
+                <label class="account-field">
+                  <span>Free Fire Player ID <small>5–15 digits</small></span>
+                  <input name="free_fire_id" type="text" inputmode="numeric" pattern="[0-9]{5,15}" maxlength="15" autocomplete="off" dir="ltr" />
+                </label>
+                <label class="account-field profile-bio-field">
+                  <span>Bio</span>
+                  <textarea name="bio" maxlength="500" rows="4"></textarea>
+                </label>
+                <button class="button button-primary account-submit" type="submit">Save profile</button>
+              </form>
+              <div class="profile-security-actions">
+                <p class="account-copy">Never share your password or verification codes. Profile updates are protected by your signed-in session and CSRF token.</p>
+                <button class="account-text-button" type="button" data-logout>Sign out</button>
+              </div>
+            </section>
+          </div>
+
+          <p class="account-message" data-account-message role="status" aria-live="polite"></p>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <a class="wordmark footer-wordmark" href="index.html">NEEN<span>.</span></a>
+        <p>FREE FIRE CONTENT <span>·</span> @NEEN_0O</p>
+        <a class="back-to-top" href="index.html">BACK HOME <span aria-hidden="true">↗</span></a>
+      </footer>
+    </div>
+  </body>
+</html>

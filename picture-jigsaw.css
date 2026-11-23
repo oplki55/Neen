@@ -1,0 +1,494 @@
+.jigsaw-game {
+  width: min(100% - 40px, 1120px);
+  padding: 45px 0 70px;
+}
+
+.jigsaw-intro {
+  margin-bottom: 30px;
+}
+
+.jigsaw-intro h1 {
+  max-width: 1000px;
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(52px, 8.5vw, 102px);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 0.94;
+}
+
+.jigsaw-intro h1 span {
+  color: var(--pink);
+}
+
+.jigsaw-intro .page-lede {
+  max-width: 720px;
+  margin: 18px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.jigsaw-panel {
+  padding: clamp(16px, 3.2vw, 32px);
+  border: 6px solid var(--surface);
+  border-radius: 16px;
+  background:
+    radial-gradient(ellipse at 92% 0, rgb(200 200 237 / 24%), transparent 34%),
+    var(--surface);
+  box-shadow: 0 18px 48px rgb(111 76 129 / 13%);
+}
+
+.jigsaw-topline {
+  display: flex;
+  min-height: 25px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.jigsaw-attempt-count,
+.jigsaw-status {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.jigsaw-attempt-count strong {
+  margin-left: 6px;
+  color: var(--pink-soft);
+  font-family: var(--display);
+  font-size: 17px;
+}
+
+.jigsaw-status {
+  max-width: 65%;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.6;
+  text-align: right;
+}
+
+.jigsaw-status.is-error {
+  color: #a33155;
+}
+
+.jigsaw-wallet {
+  display: flex;
+  gap: 24px;
+  margin: 8px 0 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: rgb(255 255 255 / 54%);
+}
+
+.jigsaw-wallet p {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+}
+
+.jigsaw-wallet span {
+  color: var(--text-muted);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.jigsaw-wallet strong {
+  color: var(--text);
+  font-family: var(--display);
+  font-size: 16px;
+}
+
+.jigsaw-reward {
+  color: var(--pink-soft) !important;
+  font-weight: 700;
+}
+
+.jigsaw-picker {
+  padding-top: 18px;
+}
+
+.jigsaw-picker h2,
+.jigsaw-board-heading h2 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(26px, 4vw, 40px);
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.jigsaw-picker > p {
+  margin: 8px 0 20px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.jigsaw-image-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.jigsaw-image-option {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: linear-gradient(155deg, rgb(255 228 239 / 48%), transparent 65%), var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.jigsaw-image-option:hover {
+  transform: translateY(-2px);
+  border-color: var(--pink-bright);
+}
+
+.jigsaw-image-option.is-selected {
+  border-color: var(--pink);
+  box-shadow: 0 0 0 3px rgb(214 95 150 / 14%), 0 8px 22px rgb(111 76 129 / 12%);
+}
+
+.jigsaw-image-option img {
+  display: block;
+  width: 100%;
+  height: clamp(120px, 23vw, 250px);
+  border-radius: 7px;
+  background:
+    radial-gradient(ellipse at 50% 0, rgb(200 200 237 / 25%), transparent 60%),
+    #fff7fb;
+  object-fit: contain;
+}
+
+.jigsaw-image-option span {
+  min-height: 30px;
+  padding: 0 3px 3px;
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.jigsaw-picker-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 22px;
+}
+
+.jigsaw-picker-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.jigsaw-signin {
+  margin: 18px 0 0;
+  color: var(--text-secondary);
+  font-size: 11px;
+  text-align: center;
+}
+
+.jigsaw-signin a {
+  color: var(--pink-soft);
+  font-weight: 700;
+}
+
+.jigsaw-board-view {
+  padding-top: 18px;
+}
+
+.jigsaw-board-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.jigsaw-board-label {
+  margin: 0 0 7px;
+  color: var(--pink-soft);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+}
+
+.jigsaw-progress {
+  display: grid;
+  gap: 4px;
+  text-align: right;
+}
+
+.jigsaw-progress span {
+  color: var(--pink-soft);
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.jigsaw-progress small {
+  color: var(--text-muted);
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+.jigsaw-board-wrap {
+  display: grid;
+  min-height: 220px;
+  place-items: center;
+  padding: 12px;
+  border: 1px solid var(--divider);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 50% 50%, rgb(200 200 237 / 18%), transparent 72%),
+    #fff9fc;
+}
+
+.jigsaw-board {
+  display: grid;
+  width: min(100%, 820px, calc(72svh * var(--jigsaw-aspect, 1)));
+  aspect-ratio: var(--jigsaw-aspect, 1);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  border: 3px solid #fff;
+  border-radius: 8px;
+  background: #f3e5f1;
+  box-shadow: 0 10px 28px rgb(111 76 129 / 17%);
+  touch-action: none;
+}
+
+.jigsaw-piece {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 84%);
+  border-radius: 0;
+  background-color: #e9d8ec;
+  background-image: var(--jigsaw-image);
+  background-repeat: no-repeat;
+  background-size: 300% 300%;
+  background-position:
+    var(--piece-x)
+    var(--piece-y);
+  cursor: grab;
+  touch-action: none;
+  transition:
+    filter 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.jigsaw-piece:hover {
+  z-index: 1;
+  filter: brightness(1.05);
+}
+
+.jigsaw-piece:active,
+.jigsaw-piece.is-dragging {
+  cursor: grabbing;
+}
+
+.jigsaw-piece.is-dragging {
+  z-index: 2;
+  opacity: 0.62;
+  pointer-events: none;
+}
+
+.jigsaw-piece.is-selected {
+  z-index: 1;
+  box-shadow: inset 0 0 0 4px #fff, inset 0 0 0 7px var(--pink);
+}
+
+.jigsaw-piece.is-correct {
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 40%);
+}
+
+.jigsaw-hint {
+  margin: 14px 0 0;
+  color: var(--text-muted);
+  font-size: 10px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.jigsaw-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.jigsaw-actions button {
+  cursor: pointer;
+}
+
+.jigsaw-complete {
+  margin: 20px auto 0;
+  padding: 17px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-raised);
+  text-align: center;
+}
+
+.jigsaw-complete > span {
+  color: var(--pink);
+  font-size: 24px;
+}
+
+.jigsaw-complete h3 {
+  margin: 6px 0 8px;
+  font-family: var(--display);
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.jigsaw-complete p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.jigsaw-footnote {
+  margin: 16px 3px 0;
+  color: var(--text-muted);
+  font-size: 10px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .jigsaw-game {
+    width: min(100% - 28px, 1120px);
+    padding-top: 30px;
+  }
+
+  .jigsaw-panel {
+    padding: 14px 11px 16px;
+    border-width: 4px;
+  }
+
+  .jigsaw-topline {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .jigsaw-status {
+    max-width: none;
+    text-align: left;
+  }
+
+  .jigsaw-image-options {
+    gap: 7px;
+  }
+
+  .jigsaw-image-option {
+    gap: 7px;
+    padding: 6px;
+  }
+
+  .jigsaw-image-option img {
+    height: clamp(85px, 28vw, 150px);
+  }
+
+  .jigsaw-image-option span {
+    font-size: 9px;
+  }
+
+  .jigsaw-board-wrap {
+    min-height: 140px;
+    padding: 7px;
+  }
+
+  .jigsaw-board {
+    width: min(100%, 820px, calc(68svh * var(--jigsaw-aspect, 1)));
+  }
+
+  .jigsaw-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .jigsaw-actions > * {
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jigsaw-image-option,
+  .jigsaw-piece {
+    transition-duration: 1ms;
+  }
+}
+
+.jigsaw-image-option img {
+  object-fit: contain;
+  object-position: center;
+}
+
+.jigsaw-board-wrap {
+  background:
+    radial-gradient(circle at 50% 50%, rgb(200 200 237 / 24%), transparent 72%),
+    linear-gradient(145deg, #fffdfb, #fff5fa);
+}
+
+
+/* === 4x4 (16-PIECE) JIGSAW GRID & COMPLETION DISPLAY === */
+[data-jigsaw-board],
+.jigsaw-board {
+  display: grid !important;
+  grid-template-columns: repeat(var(--jigsaw-grid-size, 4), minmax(0, 1fr)) !important;
+  grid-template-rows: repeat(var(--jigsaw-grid-size, 4), minmax(0, 1fr)) !important;
+  gap: 2px;
+}
+
+.jigsaw-piece {
+  background-image: var(--jigsaw-image) !important;
+  background-size: calc(var(--jigsaw-grid-size, 4) * 100%) calc(var(--jigsaw-grid-size, 4) * 100%) !important;
+  background-position: var(--piece-x, 0%) var(--piece-y, 0%) !important;
+}
+
+[data-jigsaw-complete]:not([hidden]) {
+  display: block !important;
+}
+
+
+/* === FORCE COMPLETION PANEL & BUTTONS VISIBILITY === */
+.jigsaw-complete:not([hidden]),
+[data-jigsaw-complete]:not([hidden]) {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+
+/* === SEAMLESS COMPLETED IMAGE & VISUAL SLOT ALIGNMENT === */
+[data-jigsaw-board].is-complete,
+.jigsaw-board.is-complete {
+  gap: 0 !important;
+  border-color: #22a06b;
+}
+
+.jigsaw-board.is-complete .jigsaw-piece {
+  border-radius: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}

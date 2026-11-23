@@ -1,0 +1,20 @@
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^src(?:/|$) - [F,L]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+<Files "migrate.php">
+    Require all denied
+</Files>
+
+<Files "bootstrap.php">
+    Require all denied
+</Files>
+
+<FilesMatch "(?i)\.(?:sql|ini|log)$">
+    Require all denied
+</FilesMatch>

@@ -1,0 +1,181 @@
+/* === NEEN ACCOUNT.HTML — LIGHT LUXURY SAKURA THEME OVERRIDE === */
+:root {
+  --hub-bg: #f7dce9;
+  --hub-surface: rgba(255, 255, 255, 0.88);
+  --hub-card: rgba(255, 255, 255, 0.95);
+  --hub-text: #35203b;
+  --hub-muted: #6e5673;
+  --hub-accent: #9e3366;
+  --hub-accent-2: #8a4fd6;
+  --hub-border: rgba(158, 51, 102, 0.24);
+}
+
+body {
+  color: #35203b !important;
+  background:
+    radial-gradient(circle at 12% 10%, rgba(235, 118, 175, 0.34) 0%, transparent 42%),
+    radial-gradient(circle at 88% 12%, rgba(145, 132, 238, 0.36) 0%, transparent 45%),
+    radial-gradient(circle at 50% 90%, rgba(214, 95, 150, 0.18) 0%, transparent 50%),
+    linear-gradient(180deg, #f7dce9 0%, #ede3f8 50%, #fae8f2 100%) !important;
+  background-attachment: fixed !important;
+}
+
+.account-page,
+.account-page h1,
+.account-page h2,
+.account-page h3,
+.account-page h4,
+.account-page p,
+.account-page label,
+.account-page span,
+.account-page strong,
+.account-page b {
+  color: inherit;
+}
+
+.account-page .page-lede,
+.account-page small,
+.account-page .account-copy {
+  color: #6e5673 !important;
+}
+
+.account-page a:not(.account-submit):not(.account-tab) {
+  color: #9e3366;
+}
+
+.account-card,
+.account-profile {
+  background: rgba(255, 255, 255, 0.82) !important;
+  backdrop-filter: blur(22px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(160%) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.95) !important;
+  border-radius: 28px !important;
+  color: #35203b !important;
+  box-shadow:
+    0 24px 60px rgba(140, 52, 112, 0.14),
+    0 6px 18px rgba(145, 132, 238, 0.20),
+    inset 0 1px 0 #ffffff !important;
+}
+
+.gamer-hero {
+  position: relative !important;
+  overflow: hidden !important;
+  background:
+    radial-gradient(circle at 90% 15%, rgba(214, 95, 150, 0.22) 0%, transparent 45%),
+    radial-gradient(circle at 10% 85%, rgba(145, 132, 238, 0.28) 0%, transparent 48%),
+    linear-gradient(135deg, #ffffff 0%, #fff0f7 52%, #efeaff 100%) !important;
+  border: 1.5px solid rgba(158, 51, 102, 0.30) !important;
+  border-radius: 24px !important;
+  color: #35203b !important;
+  box-shadow:
+    0 18px 40px rgba(165, 68, 128, 0.14),
+    inset 0 2px 0 #ffffff !important;
+}
+
+.gamer-hero::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 4px !important;
+  background: linear-gradient(90deg, #d65f96, #ff85c0, #8a7cf0, #d65f96) !important;
+}
+
+.gamer-avatar-frame {
+  padding: 4px !important;
+  background: linear-gradient(135deg, #d65f96 0%, #ff94c8 45%, #7f72f0 100%) !important;
+  border-radius: 24px !important;
+  box-shadow:
+    0 12px 28px rgba(214, 95, 150, 0.32),
+    0 0 0 4px rgba(255, 255, 255, 0.95) !important;
+}
+
+.gamer-avatar-frame img {
+  border-radius: 20px !important;
+}
+
+.gamer-xp-block {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid rgba(158, 51, 102, 0.22) !important;
+  border-radius: 16px !important;
+  color: #35203b !important;
+}
+
+.account-tabs,
+.profile-tablist {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1.5px solid rgba(158, 51, 102, 0.24) !important;
+  border-radius: 999px !important;
+  padding: 0.36rem !important;
+  box-shadow: 0 8px 22px rgba(165, 68, 128, 0.10) !important;
+}
+
+.account-tab,
+.profile-tablist button {
+  color: #35203b !important;
+  border-radius: 999px !important;
+  transition: all 0.2s ease !important;
+}
+
+.account-tab.is-active,
+.account-tab[aria-selected="true"],
+.profile-tablist button.is-active,
+.profile-tablist button[aria-selected="true"] {
+  background: linear-gradient(135deg, #b83b76 0%, #783bc4 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 20px rgba(140, 52, 112, 0.30) !important;
+}
+
+.gamer-stat-card,
+.account-wallet,
+.attendance-section,
+.account-coins-section,
+.profile-security-card {
+  position: relative !important;
+  overflow: hidden !important;
+  background: linear-gradient(160deg, #ffffff 0%, #fff6fa 100%) !important;
+  border: 1.5px solid rgba(158, 51, 102, 0.22) !important;
+  border-radius: 22px !important;
+  color: #35203b !important;
+  box-shadow: 0 14px 30px rgba(165, 68, 128, 0.10) !important;
+}
+
+.gamer-stat-card::before,
+.account-wallet::before,
+.attendance-section::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 3px !important;
+  background: linear-gradient(90deg, #d65f96, #ff85c0, #8a7cf0) !important;
+}
+
+.account-page input:not([type="checkbox"]):not([type="radio"]),
+.account-page select,
+.account-page textarea {
+  background: #ffffff !important;
+  color: #35203b !important;
+  border: 1.5px solid rgba(158, 51, 102, 0.24) !important;
+  border-radius: 14px !important;
+}
+
+.account-page input:focus,
+.account-page select:focus,
+.account-page textarea:focus {
+  border-color: #9e3366 !important;
+  box-shadow: 0 0 0 3px rgba(158, 51, 102, 0.15) !important;
+  outline: none !important;
+}
+
+.account-page button[type="submit"],
+.account-page .account-submit,
+.account-page .attendance-section button {
+  background: linear-gradient(135deg, #b83b76 0%, #783bc4 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 14px !important;
+  box-shadow: 0 10px 24px rgba(140, 52, 112, 0.28) !important;
+}

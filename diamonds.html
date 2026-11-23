@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#FFF2F7" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <meta name="description" content="Choose an administrator-configured diamond package and submit a tracked top-up request." />
+    <title>Diamonds — NEEN</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Exo+2:wght@400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700&family=Oxanium:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css?v=20261121u3" />
+    <script src="payment-config.js" defer></script>
+    <script src="script.js?v=20261121fast" defer></script>
+    <script src="diamonds-recharge.js" defer></script>
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="site-header">
+        <span class="wordmark wordmark-lockup"><a href="index.html" aria-label="NEEN home">NEEN<span aria-hidden="true">.</span></a><span class="palestine-flag-badge" title="فلسطين • Palestine" aria-label="علم فلسطين"><svg viewBox="0 0 36 24" width="32" height="21" aria-hidden="true"><rect width="36" height="8" y="0" fill="#111111"/><rect width="36" height="8" y="8" fill="#ffffff"/><rect width="36" height="8" y="16" fill="#149954"/><polygon points="0,0 16,12 0,24" fill="#e4312b"/></svg></span></span>
+        <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="site-navigation"><span></span><span></span></button>
+        <nav class="site-navigation" id="site-navigation" aria-label="Main navigation">
+          <a class="nav-link" href="index.html">Home</a>
+          <a class="nav-link" href="videos.html">Videos</a>
+          <a class="nav-link" href="about.html">About Me</a>
+          <a class="nav-link" href="gallery.html">Gallery</a>
+          <a class="nav-link" href="events.html">Events</a>
+          <a class="nav-link is-active" href="diamonds.html" aria-current="page">Diamonds</a>
+          <a class="nav-cta" href="https://www.tiktok.com/@neen_0o" target="_blank" rel="noreferrer"><span>TikTok</span><span class="arrow" aria-hidden="true">↗</span></a>
+        </nav>
+      </header>
+      <main class="page-main diamonds-page">
+        <section class="diamonds-intro section-wrap" aria-labelledby="page-title">
+          <p class="eyebrow section-eyebrow">FREE FIRE <span> / TOP-UP</span></p>
+          <h1 id="page-title">DIAMONDS<br /><span>TOP-UP.</span></h1>
+          <p class="page-lede">Choose an active package and submit a tracked top-up request. Payment and delivery are reviewed separately by NEEN staff.</p>
+        </section>
+        <section class="diamonds-layout section-wrap" aria-label="Diamond top-up request">
+          <aside class="setup-notice">
+            <span class="setup-notice-icon" aria-hidden="true">!</span>
+            <div>
+              <p class="eyebrow">SAFE TOP-UP</p>
+              <h2>Tracked requests.<br />No fake delivery.</h2>
+              <p>Only packages configured by an authorized NEEN administrator are displayed. Submitting a request does not verify payment or deliver diamonds.</p>
+            </div>
+            <ul class="setup-checklist">
+              <li><span aria-hidden="true">—</span> Packages and prices are server-managed</li>
+              <li><span aria-hidden="true">—</span> Player ID only; never provide a game password</li>
+              <li><span aria-hidden="true">—</span> Payment review and delivery are separate steps</li>
+              <li><span aria-hidden="true">—</span> Provider integrations remain disabled until approved</li>
+            </ul>
+          </aside>
+          <div class="order-panel">
+            <div class="order-panel-heading">
+              <p class="eyebrow section-eyebrow">DIAMOND ORDER <span> ·</span></p>
+              <span class="preview-badge">SERVER-TRACKED</span>
+            </div>
+            <form class="diamond-form" data-diamond-order-form autocomplete="off" novalidate>
+              <div class="form-field">
+                <label for="diamond-package">1. Choose an active package <span>Required</span></label>
+                <select id="diamond-package" data-diamond-package required disabled>
+                  <option value="">Loading server packages…</option>
+                </select>
+                <small data-diamond-package-status>Packages and prices are read from the NEEN database.</small>
+              </div>
+              <aside class="payment-instructions" data-jordan-payment-instructions aria-labelledby="jordan-payment-title" hidden>
+                <p class="eyebrow" id="jordan-payment-title">JORDAN MANUAL TRANSFER <span>/ تحويل يدوي في الأردن</span></p>
+                <p>Pay only the exact amount shown for the selected package. Payment is checked manually; an order is not payment confirmation.</p>
+                <dl>
+                  <div><dt>Exact amount / المبلغ بالضبط</dt><dd data-jordan-payment-amount></dd></div>
+                </dl>
+                <p class="review-disclaimer" data-jordan-payment-setup-warning hidden></p>
+                <dl data-jordan-payment-methods></dl>
+              </aside>
+              <div class="form-field">
+                <label for="player-id">2. Player ID / UID <span>Required</span></label>
+                <input id="player-id" type="text" inputmode="numeric" autocomplete="off" minlength="6" maxlength="20" pattern="[0-9]{6,20}" title="Enter a player ID containing 6 to 20 digits." placeholder="Enter your numeric player ID" required />
+                <small>Only your in-game player ID. Never enter your password or verification code.</small>
+              </div>
+              <div class="form-field">
+                <label for="payment-reference">3. Transaction reference / payment proof <span>Optional</span></label>
+                <input id="payment-reference" type="text" autocomplete="off" maxlength="150" placeholder="Wallet or CliQ transaction reference" />
+                <small>After paying, enter the transaction reference number for manual review. Leave blank if you have not paid. Never enter a password or one-time code.</small>
+              </div>
+              <button class="button button-primary review-button" type="submit" disabled><span>Review order</span><span class="button-arrow" aria-hidden="true">↗</span></button>
+              <p class="form-error" data-diamond-error role="alert" hidden></p>
+            </form>
+
+            <section class="order-review" data-diamond-review aria-labelledby="review-title" hidden>
+              <p class="eyebrow section-eyebrow">CHECK YOUR DETAILS <span> ·</span></p>
+              <h2 id="review-title">REVIEW YOUR <span>ORDER.</span></h2>
+              <dl class="order-summary">
+                <div><dt>Package</dt><dd data-diamond-review-package></dd></div>
+                <div><dt>Diamond quantity</dt><dd data-diamond-review-amount></dd></div>
+                <div><dt>Price</dt><dd data-diamond-review-price></dd></div>
+                <div><dt>Player ID / UID</dt><dd data-diamond-review-player></dd></div>
+                <div><dt>Payment reference</dt><dd data-diamond-review-reference></dd></div>
+              </dl>
+              <p class="review-disclaimer">Submitting creates a request only. Payment verification and diamond delivery are not automatic.</p>
+              <div class="review-actions">
+                <button class="outline-link" type="button" data-diamond-edit>Edit details</button>
+                <button class="button button-primary" type="button" data-diamond-submit disabled><span>Submit tracked request</span><span class="button-arrow" aria-hidden="true">↗</span></button>
+              </div>
+              <p class="form-error" data-diamond-review-error role="alert" hidden></p>
+            </section>
+
+            <section class="order-confirmation" data-diamond-confirmation aria-labelledby="confirmation-title" aria-live="polite" hidden>
+              <span class="confirmation-mark" aria-hidden="true">↻</span>
+              <p class="eyebrow section-eyebrow">REQUEST RECEIVED — PAYMENT PENDING</p>
+              <h2 id="confirmation-title" tabindex="-1">TRACK YOUR<br /><span>REQUEST.</span></h2>
+              <p data-diamond-confirmation-copy>Your request is recorded. Payment and diamond delivery are not confirmed.</p>
+              <p>Order number: <strong data-diamond-order-number></strong></p>
+              <a class="outline-link" href="index.html">Return home <span class="arrow" aria-hidden="true">↗</span></a>
+            </section>
+          </div>
+        </section>
+        <section class="diamonds-layout section-wrap" aria-label="NEEN Coins top-up request" id="coins-topup">
+          <aside class="setup-notice">
+            <span class="setup-notice-icon" aria-hidden="true">✦</span>
+            <div>
+              <p class="eyebrow">SITE CURRENCY</p>
+              <h2>NEEN Coins.<br />Play &amp; unlock.</h2>
+              <p>Purchase Purchased Coins to enter paid challenges and unlock site perks. Coins are credited after payment verification.</p>
+            </div>
+            <ul class="setup-checklist">
+              <li><span aria-hidden="true">—</span> Official NEEN site currency packages</li>
+              <li><span aria-hidden="true">—</span> Submit transfer reference directly here</li>
+              <li><span aria-hidden="true">—</span> Full ledger tracking inside your Account</li>
+            </ul>
+          </aside>
+          <div class="order-panel">
+            <div class="order-panel-heading">
+              <p class="eyebrow section-eyebrow">COINS ORDER <span> / SITE CURRENCY</span></p>
+              <span class="preview-badge">NEEN WALLET</span>
+            </div>
+            <form class="diamond-form" data-coin-topup-form autocomplete="off" novalidate>
+              <div class="form-field">
+                <label for="coin-topup-package">1. Choose a NEEN Coins package <span>Required</span></label>
+                <select id="coin-topup-package" data-coin-topup-package required disabled>
+                  <option value="">Loading Coin packages…</option>
+                </select>
+                <small data-coin-topup-status>Packages are loaded from the NEEN Coins catalog.</small>
+              </div>
+              <div class="form-field">
+                <label for="coin-topup-method">2. Payment method <span>Required</span></label>
+                <select id="coin-topup-method" data-coin-topup-method required disabled>
+                  <option value="">Loading payment methods…</option>
+                </select>
+                <small data-coin-topup-instructions>Select a payment method to view instructions.</small>
+              </div>
+              <div class="form-field">
+                <label for="coin-topup-ref">3. Transaction reference <span>Optional</span></label>
+                <input id="coin-topup-ref" data-coin-topup-ref type="text" maxlength="150" placeholder="Transfer reference number" />
+              </div>
+              <div class="form-field">
+                <label for="coin-topup-proof">4. Transfer note / sender details <span>Optional</span></label>
+                <input id="coin-topup-proof" data-coin-topup-proof type="text" maxlength="500" placeholder="Sender name, wallet number, or transfer time" />
+              </div>
+              <button class="button button-primary review-button" type="submit" disabled><span>Submit Coin order</span><span class="button-arrow" aria-hidden="true">↗</span></button>
+              <p class="form-error" data-coin-topup-error role="alert" hidden></p>
+              <p class="form-success" data-coin-topup-success role="status" hidden style="color:#1b7a46;font-weight:600;margin-top:.75rem;"></p>
+            </form>
+          </div>
+        </section>
+        <section class="diamonds-safety diamonds-orders section-wrap" aria-labelledby="diamond-orders-title">
+          <div class="order-panel-heading">
+            <div><p class="eyebrow section-eyebrow">ACCOUNT ORDERS <span> ·</span></p><h2 id="diamond-orders-title">YOUR RECHARGES</h2></div>
+            <button type="button" class="outline-link" data-diamond-refresh>Refresh orders</button>
+          </div>
+          <p data-diamond-account-message role="status">Sign in to submit and track a recharge request. <a data-diamond-login href="account.html">Open your NEEN account</a>.</p>
+          <div data-diamond-orders aria-live="polite"></div>
+        </section>
+        <section class="diamonds-safety section-wrap">
+          <p class="eyebrow section-eyebrow">PLAYER SAFETY</p>
+          <p>NEEN will never need your Free Fire password or one-time verification code to prepare a top-up request.</p>
+        </section>
+      </main>
+      <footer class="site-footer">
+        <a class="wordmark footer-wordmark" href="index.html">NEEN<span>.</span></a>
+        <p>FREE FIRE CONTENT <span>·</span> @NEEN_0O</p>
+        <div class="footer-links"><a href="videos.html">VIDEOS</a><a href="about.html">ABOUT</a><a href="gallery.html">GALLERY</a><a href="events.html">EVENTS</a><a href="diamonds.html">DIAMONDS</a></div>
+        <a class="back-to-top" href="index.html">BACK HOME <span aria-hidden="true">↑</span></a>
+      </footer>
+    </div>
+  </body>
+</html>

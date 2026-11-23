@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#FFF2F7" />
+    <meta name="description" content="Remember escalating NEEN sticker sequences in a server-validated game." />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <title>Loot Sequence Strike — NEEN</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Exo+2:wght@400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700&family=Oxanium:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css?v=20261121u3" />
+    <link rel="stylesheet" href="loot-sequence.css" />
+    <script src="script.js?v=20261121fast" defer></script>
+    <script src="loot-sequence.js" defer></script>
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="site-header">
+        <span class="wordmark wordmark-lockup"><a href="index.html" aria-label="NEEN home">NEEN<span aria-hidden="true">.</span></a><span class="palestine-flag-badge" title="فلسطين • Palestine" aria-label="علم فلسطين"><svg viewBox="0 0 36 24" width="32" height="21" aria-hidden="true"><rect width="36" height="8" y="0" fill="#111111"/><rect width="36" height="8" y="8" fill="#ffffff"/><rect width="36" height="8" y="16" fill="#149954"/><polygon points="0,0 16,12 0,24" fill="#e4312b"/></svg></span></span>
+        <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="site-navigation"><span></span><span></span></button>
+        <nav class="site-navigation" id="site-navigation" aria-label="Main navigation">
+          <a class="nav-link" href="index.html">Home</a><a class="nav-link" href="events.html">Events</a><a class="nav-link" href="events-challenges.html">Challenges</a><a class="nav-link" href="account.html">Account</a>
+        </nav>
+      </header>
+      <main class="page-main sequence-page">
+        <section class="sequence-shell section-wrap" aria-labelledby="sequence-title">
+          <nav class="sequence-crumbs" aria-label="Breadcrumb"><a href="events-challenges.html">Challenges</a><span aria-hidden="true">/</span><span>Loot Sequence Strike</span></nav>
+          <p class="eyebrow section-eyebrow">SERVER-VALIDATED GAME <span>/ DAILY CHALLENGE</span></p>
+          <h1 id="sequence-title">LOOT <span>SEQUENCE STRIKE.</span></h1>
+          <p class="page-lede">Watch each sticker pattern, then repeat it in order. Four rounds grow from three to six steps. No Coin entry fee.</p>
+          <p class="sequence-status" data-sequence-status role="status" aria-live="polite">Loading game…</p>
+          <div class="sequence-toolbar"><span>Round: <strong data-sequence-round>—</strong></span><span>Reward: <strong data-sequence-reward>50</strong> Earned Coins</span></div>
+          <section class="sequence-stage" aria-label="Current sequence round">
+            <ol class="sequence-preview" data-sequence-preview aria-label="Sequence to remember"></ol>
+            <div class="sequence-pattern" data-sequence-pattern aria-live="polite">Your pattern will appear here.</div>
+            <div class="sequence-stickers" data-sequence-stickers></div>
+            <div class="sequence-actions">
+              <button class="button button-primary" type="button" data-sequence-ready hidden>Start recall</button>
+              <button class="button button-primary" type="button" data-sequence-submit disabled>Check pattern</button>
+              <button class="outline-link" type="button" data-sequence-new hidden>Start a new sequence</button>
+            </div>
+          </section>
+          <a class="sequence-back" href="events-challenges.html">← Back to Challenges Hub</a>
+        </section>
+      </main>
+      <footer class="site-footer"><a class="wordmark footer-wordmark" href="index.html">NEEN<span>.</span></a><p>FREE FIRE CONTENT <span>·</span> @NEEN_0O</p><a class="back-to-top" href="events-challenges.html">CHALLENGES <span aria-hidden="true">↗</span></a></footer>
+    </div>
+  </body>
+</html>
