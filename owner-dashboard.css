@@ -888,6 +888,29 @@ html[dir="rtl"] .owner-body .owner-role-pill {
 }
 
 @media (max-width: 640px) {
+  .owner-shell .admin-topbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .owner-shell .admin-topbar-title {
+    min-width: 0;
+  }
+
+  .owner-live-status {
+    margin-top: 6px;
+  }
+
+  .owner-header-actions {
+    width: 100%;
+  }
+
+  .owner-header-actions .admin-identity {
+    margin-inline-start: auto;
+  }
+
   .owner-header-actions {
     gap: 6px;
   }
@@ -913,6 +936,63 @@ html[dir="rtl"] .owner-body .owner-role-pill {
 
   .owner-content {
     padding: 14px 12px;
+  }
+
+  .owner-content .admin-panel {
+    padding: 14px 12px;
+  }
+
+  .owner-content .admin-section-heading {
+    display: grid;
+    align-items: start;
+  }
+
+  .owner-content .admin-section-heading > p {
+    max-width: none;
+  }
+
+  .owner-detail-heading {
+    display: grid;
+  }
+
+  .owner-wallet-search {
+    display: grid;
+  }
+
+  .owner-wallet-search .admin-secondary-button,
+  .owner-adjustment-form .admin-primary-button {
+    width: 100%;
+  }
+
+  .owner-wallet-search input,
+  .owner-wallet-picker select,
+  .owner-adjustment-form input,
+  .owner-adjustment-form select,
+  .owner-profile-form input,
+  .owner-profile-form textarea,
+  .owner-role-form select {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .owner-shell .admin-table-wrap {
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .owner-shell .admin-table {
+    min-width: 680px;
+  }
+
+  .owner-pagination {
+    flex-wrap: wrap;
+  }
+
+  .owner-shell .admin-toast {
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    max-width: none;
   }
 
   .owner-stat-card {
@@ -1197,6 +1277,23 @@ html[dir="rtl"] .owner-body .owner-role-pill {
 
   .owner-command-link {
     flex: 1 1 auto;
+  }
+
+  .owner-stat-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .owner-header-actions .admin-identity {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .owner-shell .admin-avatar {
+    width: 34px;
+  }
+
+  .owner-shell .admin-logout {
+    min-height: 36px;
   }
 }
 
