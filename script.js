@@ -1001,9 +1001,18 @@ const translateSubtree = (root, language) => {
   if (!(root instanceof Element)) return;
 
   translateElementAttributes(root, language);
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-  while (walker.nextNode()) translateTextNode(walker.currentNode, language);
-  root.querySelectorAll("*").forEach((element) => translateElementAttributes(element, language));
+  const walker = document.createTreeWalker(
+    root,
+    NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT,
+  );
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    if (node instanceof Element) {
+      translateElementAttributes(node, language);
+    } else {
+      translateTextNode(node, language);
+    }
+  }
 };
 
 const languageNavigation = document.querySelector(".site-navigation");

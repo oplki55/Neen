@@ -9855,6 +9855,7 @@ html[dir="rtl"] .neen-news-ticker-label {
 .neen-news-ticker-viewport {
   position: relative;
   min-width: 0;
+  contain: layout paint;
   overflow: hidden;
   mask-image: linear-gradient(90deg, transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%);
 }
@@ -9992,8 +9993,8 @@ html[dir="rtl"] .neen-news-submit-toggle {
 }
 
 @keyframes neen-news-scroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
 }
 
 @media (max-width: 760px) {
@@ -10035,4 +10036,158 @@ html[dir="rtl"] .neen-news-submit-toggle {
     animation-duration: var(--neen-news-speed, 55s) !important;
     animation-iteration-count: infinite !important;
   }
+}
+
+@media (max-width: 768px), (hover: none) and (pointer: coarse) {
+  body::before,
+  body::after {
+    display: none;
+  }
+
+  .falling-flowers,
+  .home-page .falling-flowers {
+    display: none;
+  }
+
+  .site-header,
+  .home-page .home-site-shell > .site-header {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+  }
+
+  .site-navigation,
+  .home-site-shell > .site-header .site-navigation,
+  .home-page .home-site-shell > .site-header .site-navigation,
+  .lightbox::backdrop,
+  .home-about-art figcaption,
+  .home-page .island-zone-list li,
+  .home-page .arcade-grid .arcade-card-index,
+  .home-page .arcade-grid .arcade-reward-badge,
+  .account-page .account-card,
+  .account-page .account-profile {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .home-page .home-site-shell > .site-header .site-navigation {
+    background: rgb(255 253 251 / 98%);
+  }
+
+  .lightbox::backdrop {
+    background: rgb(56 35 44 / 64%);
+  }
+
+  .home-about-art figcaption {
+    background: rgb(255 253 251 / 94%);
+  }
+
+  .home-page .island-zone-list li {
+    background: rgb(15 8 28 / 88%);
+  }
+
+  .home-page .arcade-grid .arcade-card-index,
+  .home-page .arcade-grid .arcade-reward-badge {
+    background: rgb(14 8 25 / 88%);
+  }
+
+  .account-page .account-card,
+  .account-page .account-profile {
+    background: linear-gradient(155deg, rgba(255, 253, 252, 0.98) 0%, rgba(255, 241, 248, 0.96) 100%) !important;
+    box-shadow: 0 8px 20px rgba(180, 79, 135, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.96) !important;
+  }
+
+  .account-page .gamer-hero,
+  .account-page .gamer-stat-card,
+  .account-page .profile-security-card {
+    box-shadow: 0 8px 18px rgba(180, 79, 135, 0.1) !important;
+  }
+
+  .account-page .gamer-stat-card,
+  .account-page .profile-security-card {
+    transition-property: transform, border-color;
+  }
+
+  .home-page .arcade-spotlight,
+  .home-page .arcade-spotlight:hover {
+    box-shadow: 0 12px 28px rgb(22 7 37 / 22%);
+  }
+
+  .home-page .arcade-spotlight .button-primary,
+  .home-page .arcade-spotlight .button-primary:hover,
+  .home-page .arcade-spotlight .button-primary:active {
+    box-shadow: 0 6px 14px rgb(112 51 151 / 24%);
+    filter: none;
+    transition-property: transform;
+  }
+
+  .home-page .arcade-grid .arcade-card,
+  .home-page .arcade-grid .arcade-card:hover {
+    box-shadow: 0 8px 18px rgb(22 7 37 / 22%);
+    transition-property: transform, border-color;
+  }
+
+  .home-page .arcade-grid .arcade-card-art img,
+  .home-page .arcade-grid .arcade-card:hover .arcade-card-art img {
+    filter: none;
+    transition: transform 320ms ease;
+  }
+
+  .home-page .home-video-card,
+  .gallery-page-grid .gallery-card {
+    box-shadow: 0 6px 16px rgb(111 76 129 / 12%);
+  }
+
+  .home-page .home-video-card {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 640px;
+  }
+
+  .home-page .home-gallery-preview {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 620px;
+  }
+
+  .gallery-page-grid .gallery-card {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 460px;
+  }
+
+  .palestine-flag-badge {
+    animation: none;
+    box-shadow: 0 2px 6px rgb(24 44 58 / 18%);
+  }
+
+  .palestine-flag-badge::after {
+    display: none;
+  }
+
+  .home-page .home-hero .status-dot {
+    animation: none;
+  }
+
+  .neen-youtube-bubble,
+  .neen-tiktok-bubble {
+    box-shadow: 0 6px 14px rgb(116 78 138 / 24%);
+    transform: translate3d(0, 0, 0);
+    transition: none;
+    will-change: transform;
+  }
+
+  .neen-youtube-bubble::after,
+  .neen-tiktok-bubble::after {
+    animation: none;
+    opacity: 0.42;
+  }
+
+  .neen-youtube-bubble svg,
+  .neen-tiktok-bubble svg {
+    filter: none;
+  }
+
+  .neen-news-ticker-section {
+    box-shadow: 0 4px 12px rgb(15 10 38 / 16%);
+  }
+
 }
