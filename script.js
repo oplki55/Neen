@@ -1204,10 +1204,29 @@ if (languageNavigation) {
       accountLink.title = `Signed in as ${result.data.user.username}`;
       accountLink.setAttribute("aria-label", `Account, signed in as ${result.data.user.username}`);
       const staffRoles = ["owner", "super_admin", "game_admin", "support_admin", "moderator"];
+      const adminPagePermissions = [
+        "approve_reward",
+        "adjust_wallet",
+        "manage_coin_packages",
+        "manage_coin_payment_methods",
+        "manage_community_events",
+        "manage_diamond_orders",
+        "manage_diamond_packages",
+        "manage_event_rewards",
+        "manage_game_settings",
+        "manage_homepage_rewards",
+        "review_event_suggestions",
+        "review_coin_orders",
+        "review_payment",
+        "view_audit_logs",
+        "view_admin_users",
+        "view_all_wallets",
+        "access_owner_dashboard",
+      ];
       const hasStaffRole = Array.isArray(result.data.user.roles)
         && result.data.user.roles.some((role) => staffRoles.includes(role));
       const hasAdminPermission = Array.isArray(result.data.user.permissions)
-        && result.data.user.permissions.some((permission) => typeof permission === "string" && permission.length > 0);
+        && result.data.user.permissions.some((permission) => adminPagePermissions.includes(permission));
       let adminDashboardLink = languageNavigation.querySelector("[data-admin-dashboard-link]");
       if (hasStaffRole || hasAdminPermission) {
         if (!adminDashboardLink) {
