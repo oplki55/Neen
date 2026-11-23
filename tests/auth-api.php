@@ -1876,8 +1876,8 @@ try {
             $jigsawReward !== null
             && $jigsawReward['amount'] === 50
             && $jigsawReward['balance_type'] === 'earned'
-            && $jigsawReward['earned_coin_balance'] === 100 + 50 * ($imageNumber + 1)
-            && $jigsawReward['coin_balance'] === 200 + 50 * ($imageNumber + 1),
+            && $jigsawReward['earned_coin_balance'] === 50 * ($imageNumber + 1)
+            && $jigsawReward['coin_balance'] === 100 + 50 * ($imageNumber + 1),
             'A verified Picture Jigsaw win credits exactly 50 additional Earned Coins',
         );
         [$status, $duplicateFinish] = $swapJigsaw(0, 1);
@@ -1909,9 +1909,9 @@ try {
         [$status, $refreshedWallet] = request($baseUrl, '/api/wallet', $cookies);
         assertTrue(
             $status === 200
-            && $refreshedWallet['data']['earned_coin_balance'] === 100 + 50 * ($imageNumber + 1)
+            && $refreshedWallet['data']['earned_coin_balance'] === 50 * ($imageNumber + 1)
             && $refreshedWallet['data']['purchased_coin_balance'] === 100
-            && $refreshedWallet['data']['coin_balance'] === 200 + 50 * ($imageNumber + 1),
+            && $refreshedWallet['data']['coin_balance'] === 100 + 50 * ($imageNumber + 1),
             'Refreshing a completed Jigsaw session shows server wallet balances without another grant',
         );
     }
@@ -1931,8 +1931,8 @@ try {
     [$status, $walletAfterJigsaw] = request($baseUrl, '/api/wallet', $cookies);
     assertTrue(
         $status === 200
-        && $walletAfterJigsaw['data']['coin_balance'] === 350
-        && $walletAfterJigsaw['data']['earned_coin_balance'] === 250
+        && $walletAfterJigsaw['data']['coin_balance'] === 150
+        && $walletAfterJigsaw['data']['earned_coin_balance'] === 50
         && $walletAfterJigsaw['data']['purchased_coin_balance'] === 100,
         'The combined game rewards remain in Earned Coins and preserve the Purchased Coins balance',
     );
@@ -2400,7 +2400,10 @@ try {
         $csrf,
         'POST',
     );
-    assertTrue($sequenceLimitStatus === 201, 'Loot Sequence allows a paid 100-Coin attempt after three free starts');
+    assertTrue(
+        $sequenceLimitStatus === 409,
+        'Loot Sequence rejects a paid attempt when the Earned Coins balance is insufficient',
+    );
 
     [$sunnyAnonymousStatus] = request($baseUrl, '/api/games/sunny-island/state', $anonymousCookies);
     assertTrue($sunnyAnonymousStatus === 401, 'Sunny Island state requires an authenticated player');
@@ -2971,7 +2974,10 @@ try {
         $csrf,
         'POST',
     );
-    assertTrue($sunnyDailyLimitStatus === 201, 'Sunny Island allows a paid 100-Coin adventure after three free adventures');
+    assertTrue(
+        $sunnyDailyLimitStatus === 409,
+        'Sunny Island rejects a paid adventure when the Earned Coins balance is insufficient',
+    );
 
     [$status, $publicLeaderboard] = request($baseUrl, '/api/events/leaderboard', $anonymousCookies);
     $leaderboards = $publicLeaderboard['data']['leaderboards'] ?? [];
