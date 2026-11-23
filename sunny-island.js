@@ -427,14 +427,13 @@
     const balance = document.querySelector("[data-earned-balance]");
     if (balance) balance.textContent = state.earnedCoins === null ? "—" : formatNumber(state.earnedCoins);
     startButton.disabled = !state.authenticated || state.busy
-      || state.adventure.attempts_remaining_today < 1
       || Boolean(state.session && ["started", "in_progress"].includes(state.session.status));
     if (state.session && ["started", "in_progress"].includes(state.session.status)) {
       startButton.textContent = ar ? "المغامرة جارية الآن" : "Adventure in Progress";
     } else if (state.adventure.attempts_remaining_today > 0) {
       startButton.textContent = ar ? "ابدأ مغامرة اليوم" : "Start Daily Adventure";
     } else {
-      startButton.textContent = ar ? "انتهت محاولات اليوم" : "Daily Runs Used";
+      startButton.textContent = ar ? "محاولة إضافية - 100 كوينز" : "Extra attempt - 100 Coins";
     }
     renderCodex();
     renderObjectives();
@@ -892,7 +891,7 @@
       setStatus("Sign in to start a daily adventure and earn rewards.", true);
       return;
     }
-    if (state.busy || state.adventure.attempts_remaining_today < 1) return;
+    if (state.busy) return;
     state.busy = true;
     renderProgress();
     try {

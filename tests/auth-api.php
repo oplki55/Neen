@@ -1630,7 +1630,7 @@ try {
         $csrf,
         'POST',
     );
-    assertTrue($status === 429, 'A fourth free start in the same Cairo day is rejected');
+    assertTrue($status === 201, 'A fourth Memory Match start is available as a paid 100-Coin attempt');
 
     [$status] = request($baseUrl, '/api/games/picture-jigsaw/sessions/current', $anonymousCookies);
     assertTrue($status === 401, 'Anonymous visitors cannot load a user-linked Jigsaw session');
@@ -1926,7 +1926,7 @@ try {
         $csrf,
         'POST',
     );
-    assertTrue($status === 429, 'A fourth Jigsaw start in the same Cairo day is rejected');
+    assertTrue($status === 201, 'A fourth Jigsaw start is available as a paid 100-Coin attempt');
 
     [$status, $walletAfterJigsaw] = request($baseUrl, '/api/wallet', $cookies);
     assertTrue(
@@ -2285,7 +2285,10 @@ try {
         $csrf,
         'POST',
     );
-    assertTrue($targetLimitStatus === 429, 'Target Rush enforces the existing three-start Cairo-day limit');
+    assertTrue(
+        $targetLimitStatus === 201,
+        'Target Rush allows an extra paid attempt after three free Cairo-day starts',
+    );
 
     [$status, $sequenceCatalogResponse] = request($baseUrl, '/api/games/loot-sequence', $cookies);
     $sequenceCatalog = $sequenceCatalogResponse['data']['game'] ?? [];
@@ -2397,7 +2400,7 @@ try {
         $csrf,
         'POST',
     );
-    assertTrue($sequenceLimitStatus === 429, 'Loot Sequence enforces the three-start Cairo-day limit');
+    assertTrue($sequenceLimitStatus === 201, 'Loot Sequence allows a paid 100-Coin attempt after three free starts');
 
     [$sunnyAnonymousStatus] = request($baseUrl, '/api/games/sunny-island/state', $anonymousCookies);
     assertTrue($sunnyAnonymousStatus === 401, 'Sunny Island state requires an authenticated player');
@@ -2968,7 +2971,7 @@ try {
         $csrf,
         'POST',
     );
-    assertTrue($sunnyDailyLimitStatus === 429, 'Sunny Island enforces the three-adventure Cairo-day limit');
+    assertTrue($sunnyDailyLimitStatus === 201, 'Sunny Island allows a paid 100-Coin adventure after three free adventures');
 
     [$status, $publicLeaderboard] = request($baseUrl, '/api/events/leaderboard', $anonymousCookies);
     $leaderboards = $publicLeaderboard['data']['leaderboards'] ?? [];

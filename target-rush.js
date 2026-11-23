@@ -45,6 +45,7 @@
   let previewState = null;
   let previewTimer = 0;
   let previewFallbackAvailable = false;
+  let extraAttemptCost = 100;
 
   const api = async (path, method = "GET", data = null) => {
     const headers = { Accept: "application/json" };
@@ -495,7 +496,7 @@
     if (!current) {
       targetButton.hidden = true;
       showScreen("start");
-      startButton.disabled = attemptsRemaining <= 0;
+      startButton.disabled = false;
       return;
     }
     const score = document.querySelector("[data-rush-score]");
@@ -586,7 +587,7 @@
       window.location.assign(`${window.location.pathname}?preview=1`);
       return;
     }
-    if (pending || attemptsRemaining <= 0) return;
+    if (pending) return;
     pending = true;
     startButton.disabled = true;
     try {
@@ -700,12 +701,16 @@
     try {
       const { game } = await api("/api/games/target-rush");
       rewardAmount = game.reward_amount_coins;
+      extraAttemptCost = Number(game.extra_attempt_cost_coins) || 100;
       rewardNode.textContent = new Intl.NumberFormat().format(rewardAmount);
       goal.textContent = new Intl.NumberFormat().format(game.score_to_win);
       try {
         const current = await api("/api/games/target-rush/sessions/current");
         attemptsRemaining = current.attempts_remaining_today;
         attempts.textContent = String(attemptsRemaining);
+        startButton.textContent = attemptsRemaining > 0
+          ? "Start"
+          : `Extra attempt - ${new Intl.NumberFormat().format(extraAttemptCost)} Coins`;
         if (current.session && ["started", "in_progress"].includes(current.session.status)) {
           targetButton.hidden = true;
           showScreen("start");

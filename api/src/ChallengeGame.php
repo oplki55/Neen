@@ -4,6 +4,7 @@ declare(strict_types=1);
 abstract class ChallengeGame
 {
     private const SESSION_IDLE_MINUTES = 30;
+    private const EXTRA_ATTEMPT_COST = 100;
 
     public function __construct(
         protected readonly PDO $db,
@@ -28,6 +29,7 @@ abstract class ChallengeGame
             'free_attempts_per_day' => (int) $game['free_attempt_limit'],
             'reward_amount_coins' => (int) $game['reward_amount_coins'],
             'reset_timezone' => (string) $game['reset_timezone'],
+            'extra_attempt_cost_coins' => self::EXTRA_ATTEMPT_COST,
         ];
     }
 
@@ -63,12 +65,16 @@ abstract class ChallengeGame
             if ($active !== null) {
                 return ['created' => false, 'session_id' => (int) $active['id']];
             }
+            $isPaidAttempt = false;
             if ((int) $daily['free_attempts_used'] >= (int) $game['free_attempt_limit']) {
-                throw new ApiException(
-                    'ATTEMPT_LIMIT_EXCEEDED',
-                    'All free attempts for this game today have been used.',
-                    429,
+                $attemptKey = 'game-attempt-' . $this->slug() . '-' . substr(hash('sha256', $idempotencyKey), 0, 64);
+                (new CoinsLedger($this->db))->debitForGameAttempt(
+                    $userId,
+                    self::EXTRA_ATTEMPT_COST,
+                    $attemptKey,
+                    $this->slug(),
                 );
+                $isPaidAttempt = true;
             }
 
             $expiresAt = $nowObject->modify('+' . self::SESSION_IDLE_MINUTES . ' minutes')->format('Y-m-d H:i:s');
@@ -77,12 +83,13 @@ abstract class ChallengeGame
                     (user_id, game_id, attempt_type, status, move_count, matched_pairs,
                      idempotency_key, started_at, last_activity_at, expires_at, created_at, updated_at)
                  VALUES
-                    (:user_id, :game_id, \'free\', \'started\', 0, 0, :idempotency_key,
+                    (:user_id, :game_id, :attempt_type, \'started\', 0, 0, :idempotency_key,
                      :started_at, :last_activity_at, :expires_at, :created_at, :updated_at)',
             );
             $statement->execute([
                 'user_id' => $userId,
                 'game_id' => $game['id'],
+                'attempt_type' => $isPaidAttempt ? 'paid' : 'free',
                 'idempotency_key' => $storedKey,
                 'started_at' => $now,
                 'last_activity_at' => $now,
@@ -92,13 +99,23 @@ abstract class ChallengeGame
             ]);
             $sessionId = (int) $this->db->lastInsertId();
             $this->initializeState($sessionId);
-            $this->setDailyAttemptsUsed(
-                $userId,
-                (int) $game['id'],
-                $attemptDate,
-                (int) $daily['free_attempts_used'] + 1,
-                $now,
-            );
+            if ($isPaidAttempt) {
+                $this->setDailyPaidAttemptsUsed(
+                    $userId,
+                    (int) $game['id'],
+                    $attemptDate,
+                    (int) ($daily['paid_attempts_used'] ?? 0) + 1,
+                    $now,
+                );
+            } else {
+                $this->setDailyAttemptsUsed(
+                    $userId,
+                    (int) $game['id'],
+                    $attemptDate,
+                    (int) $daily['free_attempts_used'] + 1,
+                    $now,
+                );
+            }
             return ['created' => true, 'session_id' => $sessionId];
         });
 
@@ -370,7 +387,7 @@ abstract class ChallengeGame
     private function dailyAttempts(int $userId, int $gameId, string $date, bool $lock): array
     {
         $statement = $this->db->prepare(
-            'SELECT id, free_attempts_used FROM user_game_daily_attempts
+            'SELECT id, free_attempts_used, paid_attempts_used FROM user_game_daily_attempts
              WHERE user_id = :user_id AND game_id = :game_id AND attempt_date = :attempt_date'
              . ($lock ? $this->lockClause() : ''),
         );
@@ -387,6 +404,22 @@ abstract class ChallengeGame
         $statement = $this->db->prepare(
             'UPDATE user_game_daily_attempts
              SET free_attempts_used = :used, updated_at = :now
+             WHERE user_id = :user_id AND game_id = :game_id AND attempt_date = :attempt_date',
+        );
+        $statement->execute([
+            'used' => $used,
+            'now' => $now,
+            'user_id' => $userId,
+            'game_id' => $gameId,
+            'attempt_date' => $date,
+        ]);
+    }
+
+    private function setDailyPaidAttemptsUsed(int $userId, int $gameId, string $date, int $used, string $now): void
+    {
+        $statement = $this->db->prepare(
+            'UPDATE user_game_daily_attempts
+             SET paid_attempts_used = :used, updated_at = :now
              WHERE user_id = :user_id AND game_id = :game_id AND attempt_date = :attempt_date',
         );
         $statement->execute([

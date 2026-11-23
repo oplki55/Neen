@@ -138,6 +138,28 @@ final class CoinsLedger
         );
     }
 
+    public function debitForGameAttempt(
+        int $userId,
+        int $amount,
+        string $idempotencyKey,
+        string $gameSlug,
+    ): int {
+        if ($amount !== 100 || trim($gameSlug) === '') {
+            throw new InvalidArgumentException('Invalid game attempt purchase.');
+        }
+        return $this->move(
+            $userId,
+            'earned',
+            $amount,
+            'debit',
+            'service_usage',
+            $idempotencyKey,
+            'game_attempt',
+            null,
+            'Extra attempt for ' . $gameSlug,
+        );
+    }
+
     public function adjust(
         int $userId,
         string $balanceType,
