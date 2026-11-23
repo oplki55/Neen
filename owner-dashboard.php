@@ -183,7 +183,7 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
               <form class="admin-form-grid owner-adjustment-form" data-owner-adjustment>
                 <label><span data-i18n="direction">Direction</span><select name="direction" required><option value="credit" data-i18n="credit">Add</option><option value="debit" data-i18n="debit">Deduct</option></select></label>
                 <label><span data-i18n="balanceType">Balance type</span><select name="balance_type" required><option value="earned" data-i18n="earned">Earned</option><option value="purchased" data-i18n="purchased">Purchased</option></select></label>
-                <label><span data-i18n="amount">Amount</span><input name="amount" type="number" min="1" max="100000000" step="1" required dir="ltr" /></label>
+                <label><span data-i18n="amount">Amount</span><input name="amount" type="text" inputmode="numeric" pattern="[0-9]{1,9}" maxlength="9" required dir="ltr" placeholder="2000" /></label>
                 <label class="admin-form-wide"><span data-i18n="reason">Reason (required)</span><input name="reason" minlength="3" maxlength="1000" required data-i18n-placeholder="reasonPlaceholder" placeholder="Explain this adjustment" /></label>
                 <button class="admin-primary-button" type="submit" data-i18n="submitAdjustment">Submit adjustment</button>
               </form>

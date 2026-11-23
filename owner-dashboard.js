@@ -56,6 +56,7 @@
       walletAccount: "Wallet account", ledgerHistory: "Ledger history", selectWalletUser: "Select an account from Users to view its ledger and make a documented adjustment.",
       selectWalletAccount: "Select account", chooseWalletAccount: "Choose an account",
       adjustCoins: "Adjust Coins", direction: "Direction", balanceType: "Balance type", amount: "Amount",
+      amountInvalid: "Enter a whole Coins amount from 1 to 100,000,000.",
       reason: "Reason (required)", submitAdjustment: "Submit adjustment",
       adjustmentWarning: "Every adjustment is permanent in the ledger. Verify the account, balance type, amount, and reason before submitting.",
       modulesDesc: "Tune daily starts and verified-win rewards for every live game. Open the linked console for other service-backed modules.",
@@ -211,6 +212,7 @@
       walletAccount: "محفظة المستخدم", ledgerHistory: "سجل المعاملات", selectWalletUser: "اختر حسابًا من المستخدمين لعرض سجله وإجراء تعديل موثق.",
       selectWalletAccount: "اختر الحساب", chooseWalletAccount: "اختر حسابًا",
       adjustCoins: "تعديل العملات", direction: "العملية", balanceType: "نوع الرصيد", amount: "الكمية",
+      amountInvalid: "أدخل كمية عملات صحيحة من 1 إلى 100,000,000.",
       reason: "السبب (إلزامي)", submitAdjustment: "تنفيذ التعديل",
       adjustmentWarning: "يُسجل كل تعديل نهائيًا. تحقق من الحساب ونوع الرصيد والكمية والسبب قبل التنفيذ.",
       modulesDesc: "اضبط المحاولات اليومية ومكافآت الفوز المتحقق لكل الألعاب. افتح لوحة الإدارة للأنظمة الأخرى المرتبطة بالخدمات.",
@@ -1620,14 +1622,24 @@
         return;
       }
       if (!window.confirm(t("confirmAdjustment"))) return;
+      const fields = new FormData(form);
+      const amountText = String(fields.get("amount") ?? "").trim();
+      if (!/^[1-9][0-9]{0,8}$/.test(amountText)) {
+        toast(t("amountInvalid"), true);
+        return;
+      }
+      const amount = Number(amountText);
+      if (!Number.isSafeInteger(amount) || amount < 1 || amount > 100000000) {
+        toast(t("amountInvalid"), true);
+        return;
+      }
       const unlock = lockFormSubmit(form);
       if (!unlock) return;
-      const fields = new FormData(form);
       try {
         await mutate(`/api/admin/wallets/${state.selectedUser.id}/adjustments`, "POST", {
           direction: String(fields.get("direction")),
           balance_type: String(fields.get("balance_type")),
-          amount: Number(fields.get("amount")),
+          amount,
           reason: String(fields.get("reason")).trim(),
           idempotency_key: `owner-wallet-${crypto.randomUUID()}`,
         });

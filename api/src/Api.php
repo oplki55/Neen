@@ -2796,6 +2796,9 @@ final class Api
         }
         $balanceType = $this->balanceType($this->body['balance_type'] ?? null);
         $amount = $this->positiveInteger($this->body['amount'] ?? null, 'amount');
+        if ($amount > 100000000) {
+            throw new ApiException('VALIDATION_ERROR', 'Amount must not exceed 100000000 Coins.', 422);
+        }
         $reason = $this->requiredString('reason', 3, 1000);
         $idempotencyKey = $this->idempotencyKey($this->body['idempotency_key'] ?? null);
         $entryId = $this->transaction(function () use (
