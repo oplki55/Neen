@@ -433,7 +433,7 @@
     } else if (state.adventure.attempts_remaining_today > 0) {
       startButton.textContent = ar ? "ابدأ مغامرة اليوم" : "Start Daily Adventure";
     } else {
-      startButton.textContent = ar ? "محاولة إضافية - 100 كوينز" : "Extra attempt - 100 Coins";
+      startButton.textContent = ar ? "محاولة إضافية – 100 كوينز" : "Extra attempt – 100 Coins";
     }
     renderCodex();
     renderObjectives();
@@ -457,12 +457,14 @@
         ? (ar ? "ابدأ مغامرة يومية لكشف أهدافك الثلاثة في الجزيرة." : "Start a daily adventure to reveal your three island objectives.")
         : (ar ? "سجّل الدخول لحفظ اكتشافاتك وبدء مغامرة يومية." : "Sign in to save discoveries and start a daily adventure.");
       objectivesNode.append(empty);
-      if (state.authenticated && state.adventure.attempts_remaining_today > 0) {
+      if (state.authenticated) {
         const quickStart = document.createElement("button");
         quickStart.type = "button";
         quickStart.className = "sunny-main-button";
         quickStart.style.marginTop = "0.75rem";
-        quickStart.textContent = ar ? "اكشف أهداف اليوم الثلاثة" : "Reveal Today's 3 Objectives";
+        quickStart.textContent = state.adventure.attempts_remaining_today === 0
+          ? (ar ? "محاولة إضافية – 100 كوينز" : "Extra attempt – 100 Coins")
+          : (ar ? "اكشف أهداف اليوم الثلاثة" : "Reveal Today's 3 Objectives");
         quickStart.addEventListener("click", () => void startAdventure());
         objectivesNode.append(quickStart);
       }
@@ -850,10 +852,8 @@
     } else if (item.type === "board") {
       if (state.session && ["started", "in_progress"].includes(state.session.status)) {
         toast("Your daily adventure is already in progress.");
-      } else if (state.adventure.attempts_remaining_today > 0) {
-        await startAdventure();
       } else {
-        toast("Today's free adventures are used. You can still explore and collect treasures.");
+        await startAdventure();
       }
     } else if (item.type === "drops") {
       if (!objectiveFor("collect_drops")) {

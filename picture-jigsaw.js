@@ -18,6 +18,7 @@
   const totalCoins = document.querySelector("[data-jigsaw-total-coins]");
   const earnedCoins = document.querySelector("[data-jigsaw-earned-coins]");
   const playAgainButton = document.querySelector("[data-jigsaw-again]");
+  const playAgainLabel = playAgainButton ? playAgainButton.querySelector("span") : null;
   const chooseButton = document.querySelector("[data-jigsaw-choose]");
   const startLabel = startButton ? startButton.querySelector("span") : null;
 
@@ -47,6 +48,7 @@
 
   let csrfToken = "";
   let game = { images: FALLBACK_IMAGES };
+  let attemptsRemaining = null;
   let selectedImage = null;
   let currentSession = null;
   let pendingStartKey = "";
@@ -133,10 +135,15 @@
     if (!useServerSync) return;
     try {
       updateWallet(await api("wallet"));
-    } catch {
-      useServerSync = false;
-      if (totalCoins && totalCoins.textContent === "--") totalCoins.textContent = "0";
-      if (earnedCoins && earnedCoins.textContent === "--") earnedCoins.textContent = "0";
+    } catch (error) {
+      if (totalCoins) {
+        totalCoins.textContent = "Unavailable";
+        totalCoins.title = error instanceof Error ? error.message : "The wallet could not be loaded.";
+      }
+      if (earnedCoins) {
+        earnedCoins.textContent = "Unavailable";
+        earnedCoins.title = error instanceof Error ? error.message : "The wallet could not be loaded.";
+      }
     }
   };
 
@@ -154,7 +161,14 @@
     const active = Boolean(currentSession && currentSession.status !== "completed");
     if (startButton) {
       startButton.disabled = busy || !selectedImage;
-      if (startLabel) startLabel.textContent = active ? "Resume this picture" : "Start this picture";
+      if (startLabel) {
+        startLabel.textContent = active
+          ? "Resume this picture"
+          : attemptsRemaining === 0 ? "Extra attempt – 100 Coins" : "Start this picture";
+      }
+    }
+    if (playAgainLabel) {
+      playAgainLabel.textContent = attemptsRemaining === 0 ? "Extra attempt – 100 Coins" : "Play again";
     }
     if (playAgainButton) playAgainButton.disabled = busy;
     if (chooseButton) chooseButton.disabled = busy;
@@ -427,6 +441,7 @@
       });
       pendingStartKey = "";
       if (attempts && data.attempts_remaining_today !== undefined) {
+        attemptsRemaining = data.attempts_remaining_today;
         attempts.textContent = String(data.attempts_remaining_today);
       }
       if (signIn) signIn.hidden = true;
@@ -436,11 +451,9 @@
       buildBoard(sessionObj);
       setStatus("Your 16-piece picture is ready. Swap pieces to rebuild the original.");
     } catch (err) {
-      useServerSync = false;
       if (err?.status === 401 && signIn) signIn.hidden = false;
       busy = false;
-      buildBoard(createLocalSession(image));
-      setStatus("Your 16-piece picture is ready. Swap pieces to rebuild the original.");
+      setStatus(err instanceof Error ? err.message : "The picture could not be started.", true);
     } finally {
       busy = false;
       if (startButton) startButton.removeAttribute("aria-busy");
@@ -484,7 +497,6 @@
           choice.setAttribute("aria-pressed", String(id === image.id));
         });
         updateControls();
-        void startGame(image);
       });
 
       imageChoices.set(image.id, button);
@@ -497,9 +509,14 @@
     playAgainButton.addEventListener("click", () => {
       if (busy) return;
       const img = currentSession?.image || selectedImage || FALLBACK_IMAGES[0];
-      useServerSync = false;
-      buildBoard(createLocalSession(img));
-      setStatus("New 16-piece shuffle started!");
+      if (currentSession?._local) {
+        useServerSync = false;
+        buildBoard(createLocalSession(img));
+        setStatus("New 16-piece shuffle started!");
+      } else {
+        useServerSync = true;
+        void startGame(img);
+      }
     });
   }
   if (chooseButton) {
@@ -544,6 +561,9 @@
       if (catalog?.game?.images?.length) game = catalog.game;
       if (csrf?.csrf_token) csrfToken = csrf.csrf_token;
       buildImagePicker();
+      const current = await api("games/picture-jigsaw/sessions/current");
+      attemptsRemaining = current.attempts_remaining_today;
+      if (attempts) attempts.textContent = String(attemptsRemaining);
       updateControls();
       setStatus("Choose one of the pictures to start the 16-piece puzzle.");
       await refreshWallet();

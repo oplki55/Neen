@@ -14,6 +14,7 @@
   let csrfToken = "";
   let stickers = [];
   let session = null;
+  let attemptsRemaining = null;
   let pattern = [];
   let recalling = false;
   let requestPending = false;
@@ -68,6 +69,9 @@
     readyButton.hidden = !playable;
     submitButton.hidden = !playable;
     newButton.hidden = Boolean(playable);
+    newButton.textContent = attemptsRemaining === 0
+      ? "Extra attempt – 100 Coins"
+      : "Start a new sequence";
     submitButton.disabled = true;
     readyButton.disabled = requestPending;
     for (const item of stickers) {
@@ -106,6 +110,7 @@
       rewardNode.textContent = new Intl.NumberFormat().format(catalog.game.reward_amount_coins);
       try {
         const current = await api("/api/games/loot-sequence/sessions/current");
+        attemptsRemaining = current.attempts_remaining_today;
         renderRound(current.session);
         if (current.session) roundNode.title = `Daily starts remaining: ${current.attempts_remaining_today}`;
       } catch (error) {
@@ -140,6 +145,9 @@
       const result = await api("/api/games/loot-sequence/sessions", "POST", {
         idempotency_key: crypto.randomUUID(),
       });
+      if (result.attempts_remaining_today !== undefined) {
+        attemptsRemaining = result.attempts_remaining_today;
+      }
       renderRound(result.session);
       setStatus("Watch the displayed pattern, then repeat each sticker in order.");
     } catch (error) {
@@ -157,6 +165,9 @@
     submitButton.disabled = true;
     try {
       const result = await api(`/api/games/loot-sequence/sessions/${session.id}/submit`, "POST", { pattern });
+      if (result.attempts_remaining_today !== undefined) {
+        attemptsRemaining = result.attempts_remaining_today;
+      }
       renderRound(result.session);
       if (result.reward) {
         preview.hidden = false;

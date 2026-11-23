@@ -15,6 +15,7 @@
   let csrfToken = "";
   let game = null;
   let currentSession = null;
+  let attemptsRemaining = null;
   let pendingStartKey = "";
   let locked = true;
   let mismatchTimer = 0;
@@ -116,7 +117,9 @@
       card.disabled = locked || !isActive || Boolean(isUnavailable);
     });
     startButton.disabled = locked || Boolean(isActive);
-    startLabel.textContent = isActive ? "Game in progress" : "Start a game";
+    startLabel.textContent = isActive
+      ? "Game in progress"
+      : attemptsRemaining === 0 ? "Extra attempt – 100 Coins" : "Start a game";
   };
 
   const updateWallet = (wallet) => {
@@ -248,7 +251,9 @@
     try {
       const data = await api("games/memory-match/sessions", "POST", { idempotency_key: pendingStartKey });
       pendingStartKey = "";
+      attemptsRemaining = data.attempts_remaining_today;
       attempts.textContent = String(data.attempts_remaining_today);
+      updateControls();
       signIn.hidden = true;
       finish.hidden = true;
       renderSession(data.session);
@@ -281,6 +286,7 @@
       progress.textContent = `0 / ${game.pairs_total}`;
       attempts.textContent = String(game.free_attempts_per_day);
       const session = await api("games/memory-match/sessions/current");
+      attemptsRemaining = session.attempts_remaining_today;
       attempts.textContent = String(session.attempts_remaining_today);
       await refreshWallet();
       if (session.session) {

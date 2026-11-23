@@ -654,6 +654,7 @@ const arabicTranslations = {
   "Zones found": "المناطق المكتشفة",
   "Attendance streak": "سلسلة الحضور",
   "Earned Coins": "الكوينز المكتسبة",
+  "Extra attempt – 100 Coins": "محاولة إضافية – 100 كوينز",
   "Purchased Coins": "الكوينز المشتراة",
   "Total Balance": "إجمالي الرصيد",
   "PLAY TODAY": "العب اليوم",
