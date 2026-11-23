@@ -532,6 +532,7 @@ const arabicTranslations = {
   "Combo": "سلسلة الضربات",
   "Final score": "النتيجة النهائية",
   "Best combo": "أفضل سلسلة",
+  "Start": "ابدأ",
   "Start the 30-second Target Rush round": "ابدأ جولة تحدي الأهداف السريع لمدة 30 ثانية",
   "Win goal": "هدف الفوز",
   "Progress toward the 200-point win goal": "التقدم نحو هدف الفوز البالغ 200 نقطة",

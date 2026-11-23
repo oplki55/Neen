@@ -14,6 +14,8 @@
   const screens = [...document.querySelectorAll("[data-rush-screen]")];
   if ([status, attempts, goal, rewardNode, startButton, targetButton].some((node) => !(node instanceof HTMLElement))) return;
   const previewMode = new URLSearchParams(window.location.search).get("preview") === "1";
+  const previewLink = document.querySelector(".rush-preview-link");
+  if (previewLink instanceof HTMLAnchorElement) previewLink.hidden = previewMode;
   const previewDurationMs = 30_000;
   const previewTargetIntervalMs = 1_100;
 

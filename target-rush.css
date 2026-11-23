@@ -42,6 +42,10 @@
   outline-offset: 3px;
 }
 
+.rush-preview-link[hidden] {
+  display: none;
+}
+
 .rush-status {
   min-height: 22px;
   margin: 0 0 8px;
@@ -135,8 +139,17 @@
 .rush-start-hotspot {
   right: 7%;
   bottom: 3%;
+  display: grid;
   width: 34%;
   height: 15%;
+  place-items: center;
+  border: 2px solid #ffd747;
+  background: rgb(24 9 67 / 94%);
+  box-shadow: 0 0 18px rgb(255 215 71 / 45%);
+  color: #fff;
+  font: 800 clamp(12px, 2.2vw, 20px) / 1 Oxanium, sans-serif;
+  text-shadow: 0 2px 6px #16031f;
+  text-transform: uppercase;
 }
 
 .rush-back-hotspot {
