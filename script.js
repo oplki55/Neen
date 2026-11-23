@@ -525,6 +525,13 @@ const arabicTranslations = {
   "Target Rush victory results": "نتائج الفوز في تحدي الأهداف السريع",
   "Target Rush game over results": "نتائج نهاية تحدي الأهداف السريع",
   "Back to Challenges": "العودة إلى التحديات",
+  "Daily starts:": "المحاولات اليومية:",
+  "Live game statistics": "إحصاءات اللعب المباشرة",
+  "Score": "النتيجة",
+  "Time": "الوقت",
+  "Combo": "سلسلة الضربات",
+  "Final score": "النتيجة النهائية",
+  "Best combo": "أفضل سلسلة",
   "Start the 30-second Target Rush round": "ابدأ جولة تحدي الأهداف السريع لمدة 30 ثانية",
   "Win goal": "هدف الفوز",
   "Progress toward the 200-point win goal": "التقدم نحو هدف الفوز البالغ 200 نقطة",
@@ -534,6 +541,10 @@ const arabicTranslations = {
   "Hit normal target": "أصب الهدف العادي",
   "Hit gold bonus target": "أصب الهدف الذهبي الإضافي",
   "Avoid danger target": "تجنب الهدف الخطر",
+  "COMBO x{combo}!": "سلسلة x{combo}!",
+  "Sign in required": "يتطلب تسجيل الدخول",
+  "Demo only": "للعرض التجريبي فقط",
+  "Open no-reward demo preview": "افتح العرض التجريبي دون مكافآت",
   "SOUND ON": "الصوت يعمل",
   "SOUND OFF": "الصوت متوقف",
   "Mute sound": "كتم الصوت",
@@ -865,6 +876,54 @@ const localizeValue = (value, language) => {
   const arabicCoinCredit = key.match(/^تمت إضافة ([\d٠-٩][\d٠-٩,٬.٫\s]*) كوينز مكتسبة إلى محفظتك\.$/);
   if (language === "en" && arabicCoinCredit) {
     return `${arabicCoinCredit[1].trim()} Earned Coins were credited to your wallet.`;
+  }
+  const englishTargetRushWin = key.match(/^Target Rush cleared! ([\d٠-٩][\d٠-٩,٬.٫\s]*) Earned Coins were credited\.$/);
+  if (language === "ar" && englishTargetRushWin) {
+    return `أكملت تحدي الأهداف السريع! تمت إضافة ${englishTargetRushWin[1].trim()} كوينز مكتسبة إلى رصيدك.`;
+  }
+  const arabicTargetRushWin = key.match(/^أكملت تحدي الأهداف السريع! تمت إضافة ([\d٠-٩][\d٠-٩,٬.٫\s]*) كوينز مكتسبة إلى رصيدك\.$/);
+  if (language === "en" && arabicTargetRushWin) {
+    return `Target Rush cleared! ${arabicTargetRushWin[1].trim()} Earned Coins were credited.`;
+  }
+  const englishTargetRushRoundOver = key.match(/^Round over\. Reach ([\d٠-٩][\d٠-٩,٬.٫\s]*) points next time\.$/);
+  if (language === "ar" && englishTargetRushRoundOver) {
+    return `انتهت الجولة. احصل على ${englishTargetRushRoundOver[1].trim()} نقطة في المرة القادمة.`;
+  }
+  const arabicTargetRushRoundOver = key.match(/^انتهت الجولة\. احصل على ([\d٠-٩][\d٠-٩,٬.٫\s]*) نقطة في المرة القادمة\.$/);
+  if (language === "en" && arabicTargetRushRoundOver) {
+    return `Round over. Reach ${arabicTargetRushRoundOver[1].trim()} points next time.`;
+  }
+  const englishTargetRushDanger = key.match(/^Danger hit! ([+-]?[\d٠-٩][\d٠-٩,٬.٫\s]*) points\.$/);
+  if (language === "ar" && englishTargetRushDanger) {
+    return `أصبت هدفًا خطرًا! ${englishTargetRushDanger[1].trim()} نقطة.`;
+  }
+  const arabicTargetRushDanger = key.match(/^أصبت هدفًا خطرًا! ([+-]?[\d٠-٩][\d٠-٩,٬.٫\s]*) نقطة\.$/);
+  if (language === "en" && arabicTargetRushDanger) {
+    return `Danger hit! ${arabicTargetRushDanger[1].trim()} points.`;
+  }
+  const englishTargetRushHit = key.match(/^Target hit! \+([\d٠-٩][\d٠-٩,٬.٫\s]*) points\.$/);
+  if (language === "ar" && englishTargetRushHit) {
+    return `أصبت الهدف! +${englishTargetRushHit[1].trim()} نقطة.`;
+  }
+  const arabicTargetRushHit = key.match(/^أصبت الهدف! \+([\d٠-٩][\d٠-٩,٬.٫\s]*) نقطة\.$/);
+  if (language === "en" && arabicTargetRushHit) {
+    return `Target hit! +${arabicTargetRushHit[1].trim()} points.`;
+  }
+  const englishTargetRushPreviewHit = key.match(/^Target hit! \+([\d٠-٩][\d٠-٩,٬.٫\s]*) points\. Preview scores are not saved\.$/);
+  if (language === "ar" && englishTargetRushPreviewHit) {
+    return `أصبت الهدف! +${englishTargetRushPreviewHit[1].trim()} نقطة. لن تُحفظ نتائج العرض التجريبي.`;
+  }
+  const arabicTargetRushPreviewHit = key.match(/^أصبت الهدف! \+([\d٠-٩][\d٠-٩,٬.٫\s]*) نقطة\. لن تُحفظ نتائج العرض التجريبي\.$/);
+  if (language === "en" && arabicTargetRushPreviewHit) {
+    return `Target hit! +${arabicTargetRushPreviewHit[1].trim()} points. Preview scores are not saved.`;
+  }
+  const englishTargetRushCombo = key.match(/^COMBO x([\d٠-٩][\d٠-٩,٬.٫\s]*)!$/);
+  if (language === "ar" && englishTargetRushCombo) {
+    return `سلسلة x${englishTargetRushCombo[1].trim()}!`;
+  }
+  const arabicTargetRushCombo = key.match(/^سلسلة x([\d٠-٩][\d٠-٩,٬.٫\s]*)!$/);
+  if (language === "en" && arabicTargetRushCombo) {
+    return `COMBO x${arabicTargetRushCombo[1].trim()}!`;
   }
   const englishDiamondAmount = key.match(/^([\d٠-٩][\d٠-٩,٬.٫\s]*) diamonds$/);
   if (language === "ar" && englishDiamondAmount) {

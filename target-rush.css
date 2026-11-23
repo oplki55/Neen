@@ -31,7 +31,8 @@
 
 .rush-preview-link {
   display: inline-block;
-  margin: 16px 0 0 14px;
+  margin: 16px 0 0;
+  margin-inline-start: 14px;
   color: #ffd747;
   font-size: 12px;
 }
@@ -215,7 +216,7 @@
   border-radius: 9px;
   background: rgb(24 9 67 / 90%);
   font-size: clamp(8px, 1.25vw, 12px);
-  text-align: left;
+  text-align: start;
 }
 
 .rush-goal-progress > span:first-child {
@@ -227,17 +228,22 @@
 }
 
 .rush-goal-progress strong {
-  margin-left: 3px;
+  margin-inline-start: 3px;
   color: #ffda36;
 }
 
 .rush-goal-track {
   display: block;
   height: 7px;
+  direction: ltr;
   overflow: hidden;
   border: 1px solid rgb(255 255 255 / 55%);
   border-radius: 999px;
   background: rgb(0 0 0 / 48%);
+}
+
+[dir="rtl"] .rush-goal-track {
+  direction: rtl;
 }
 
 .rush-live-hud .rush-goal-track {
