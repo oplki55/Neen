@@ -43,6 +43,7 @@ final class TargetRush extends ChallengeGame
 
     public function current(int $userId): ?array
     {
+        $this->retireExpiredTargetRushRounds($userId);
         $now = $this->now();
         $statement = $this->db->prepare(
             'SELECT s.id FROM game_sessions s
@@ -50,9 +51,8 @@ final class TargetRush extends ChallengeGame
              WHERE s.user_id = :user_id AND g.slug = :slug
                AND (
                     (s.status IN (\'started\', \'in_progress\') AND s.expires_at > :now)
-                    OR s.status = \'completed\'
                )
-             ORDER BY CASE WHEN s.status IN (\'started\', \'in_progress\') THEN 0 ELSE 1 END, s.id DESC',
+               ORDER BY s.id DESC',
         );
         $statement->execute(['user_id' => $userId, 'slug' => self::GAME_SLUG, 'now' => $now]);
         foreach ($statement->fetchAll(PDO::FETCH_COLUMN) as $sessionId) {
@@ -66,6 +66,7 @@ final class TargetRush extends ChallengeGame
     public function start(int $userId, string $idempotencyKey): array
     {
         $this->retireLegacyActiveSessions($userId);
+        $this->retireExpiredTargetRushRounds($userId);
         return parent::start($userId, $idempotencyKey);
     }
 
@@ -149,6 +150,8 @@ final class TargetRush extends ChallengeGame
             'combo' => $stats['combo'],
             'best_combo' => $stats['best_combo'],
             'hits' => count($stored['state']['hits']),
+            'won' => $stored['state']['finished_at_ms'] !== null
+                && $stats['score'] >= self::SCORE_TO_WIN,
             'round_duration_ms' => self::ROUND_DURATION_MS,
             'time_remaining_ms' => max(0, self::ROUND_DURATION_MS - $elapsed),
             'server_time_ms' => $now,
@@ -370,6 +373,39 @@ final class TargetRush extends ChallengeGame
             && !array_is_list($state)
             && is_int($state['started_at_ms'] ?? null)
             && is_array($state['hits'] ?? null);
+    }
+
+    private function retireExpiredTargetRushRounds(int $userId): void
+    {
+        $this->transaction(function () use ($userId): void {
+            $statement = $this->db->prepare(
+                'SELECT s.id FROM game_sessions s
+                 JOIN game_catalog g ON g.id = s.game_id
+                 WHERE s.user_id = :user_id AND g.slug = :slug
+                   AND s.status IN (\'started\', \'in_progress\')'
+                 . $this->lockClause(),
+            );
+            $statement->execute(['user_id' => $userId, 'slug' => self::GAME_SLUG]);
+            $now = $this->now();
+            $fail = $this->db->prepare(
+                'UPDATE game_sessions SET status = \'failed\', updated_at = :updated_at
+                 WHERE id = :id AND status IN (\'started\', \'in_progress\')',
+            );
+            foreach ($statement->fetchAll(PDO::FETCH_COLUMN) as $sessionId) {
+                $id = (int) $sessionId;
+                if (!$this->isTargetRushState($id)) {
+                    $fail->execute(['updated_at' => $now, 'id' => $id]);
+                    continue;
+                }
+                $stored = $this->storedState($id, true);
+                if (
+                    $stored['state']['finished_at_ms'] === null
+                    && $this->nowMilliseconds() - $stored['state']['started_at_ms'] >= self::ROUND_DURATION_MS
+                ) {
+                    $this->completeRound($userId, $id, $stored, $this->nowMilliseconds());
+                }
+            }
+        });
     }
 
     private function retireLegacyActiveSessions(int $userId): void

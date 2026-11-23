@@ -507,12 +507,27 @@
     if (time instanceof HTMLElement) time.textContent = formatSeconds(current.time_remaining_ms);
     updateGoalProgress(current.score);
 
-    if (current.status === "completed") {
+    const scoreGoal = Math.max(1, Number(goal.textContent.replaceAll(",", "")) || 200);
+    const confirmedWin = current.status === "completed"
+      && current.won === true
+      && Number.isFinite(Number(current.score))
+      && Number(current.score) >= scoreGoal;
+
+    if (confirmedWin) {
       if (previousStatus !== "completed") playSound("win");
       targetButton.hidden = true;
       renderResults(current);
       showScreen("victory");
       setStatus(`Target Rush cleared! ${new Intl.NumberFormat().format(rewardAmount)} Earned Coins were credited.`);
+      window.clearTimeout(targetTimer);
+      window.clearInterval(clockTimer);
+      return;
+    }
+    if (current.status === "completed") {
+      targetButton.hidden = true;
+      renderResults(current);
+      showScreen("game-over");
+      setStatus("The round finished, but the score did not reach the server-confirmed win goal.");
       window.clearTimeout(targetTimer);
       window.clearInterval(clockTimer);
       return;

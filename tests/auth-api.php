@@ -1988,6 +1988,7 @@ try {
         && $targetSession['time_remaining_ms'] <= 30_000
         && $targetSession['time_remaining_ms'] > 0
         && $targetSession['score'] === 0
+        && $targetSession['won'] === false
         && is_array($targetSession['active_target'])
         && count($targetSession['lookahead_targets'] ?? []) >= 5
         && $targetSession['lookahead_targets'][0]['index'] === 0
@@ -2168,6 +2169,7 @@ try {
     assertTrue(
         $status === 200
         && $targetWin['data']['session']['status'] === 'completed'
+        && $targetWin['data']['session']['won'] === true
         && $targetWin['data']['session']['score'] >= $targetCatalog['score_to_win']
         && $targetWin['data']['reward']['amount'] === 50,
         'A full server-timed Target Rush round credits the configured reward only after its verified score goal',
