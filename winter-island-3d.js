@@ -4,7 +4,6 @@ import { GLTFLoader } from "./assets/vendor/three/addons/loaders/GLTFLoader.js";
 const canvas = document.querySelector("#island-canvas");
 const message = document.querySelector("#scene-message");
 const zoneLabel = document.querySelector("#zone-name");
-const coordinates = document.querySelector("#coordinates");
 const joystick = document.querySelector("#joystick");
 const joystickKnob = document.querySelector("#joystick-knob");
 
@@ -69,18 +68,28 @@ const BEACONS = [
   { id: "pier-beacon-b", zone: "neon_pier", x: 49, z: 31 },
 ].map(expandWorldPoint);
 const GUARDIAN_DEFS = [
-  { id: "guardian_pier", zone: "neon_pier", x: 54, z: 53, name: "North Ridge Guardian", hp: 8, color: 0x58788b, accent: 0x86e7ff },
-  { id: "guardian_grove", zone: "palm_grove", x: 52, z: 117, name: "Pine Line Guardian", hp: 8, color: 0x4b6670, accent: 0xa2e9db },
-  { id: "guardian_canyon", zone: "loot_canyon", x: 123, z: 96, name: "Icefield Sentinel", hp: 10, color: 0x496b8b, accent: 0x9ce5ff },
-  { id: "guardian_ridge", zone: "sunset_ridge", x: 98, z: 57, name: "Arctic Bunker Boss", hp: 24, color: 0x38536b, accent: 0xffd77e, boss: true },
+  { id: "guardian_pond", zone: "neon_pier", x: 45, z: 57, name: "North Ridge Orc Brute", hp: 8, color: 0x58788b, accent: 0x86e7ff },
+  { id: "guardian_pine_approach", zone: "palm_grove", x: 51, z: 119, name: "Pine Line Orc Brute", hp: 8, color: 0x4b6670, accent: 0xa2e9db },
+  { id: "guardian_depot", zone: "loot_canyon", x: 121, z: 95, name: "Supply Depot Orc Brute", hp: 10, color: 0x496b8b, accent: 0x9ce5ff },
+  { id: "guardian_bunker_east", zone: "sunset_ridge", x: 96, z: 43, name: "East Bunker Orc Brute", hp: 9, color: 0x496b8b, accent: 0x9ce5ff },
+  { id: "guardian_bunker_west", zone: "sunset_ridge", x: 130, z: 44, name: "West Bunker Orc Brute", hp: 9, color: 0x496b8b, accent: 0x9ce5ff },
+  { id: "guardian_summit", zone: "neon_pier", x: 42, z: 18, name: "Frost Giant", hp: 24, color: 0x38536b, accent: 0xffd77e, boss: true },
 ].map((definition) => ({
   ...expandWorldPoint(definition),
   modelPath: `${WINTER_MODEL_PATH}${definition.boss ? "frost-giant-boss.glb" : "low-poly-orc-brute.glb"}`,
   modelHeight: definition.boss ? 8 : 5,
 }));
 const DRONE_DEFS = [
-  { id: "drone_small", zone: "palm_grove", x: 56, z: 96, name: "West Patrol Drone", hp: 5, color: 0x57b8d5, accent: 0xc3f9ff, kind: "small" },
-  { id: "drone_flying", zone: "sunset_ridge", x: 126, z: 31, name: "Ice Wyvern", hp: 8, color: 0x57b8d5, accent: 0xc3f9ff, kind: "flying" },
+  { id: "drone_pond_west", zone: "neon_pier", x: 26, z: 43, name: "Frozen Pond Patrol Drone", hp: 5, color: 0x57b8d5, accent: 0xc3f9ff, kind: "small" },
+  { id: "wyvern_pond_east", zone: "neon_pier", x: 55, z: 35, name: "Frozen Pond Ice Wyvern", hp: 8, color: 0x57b8d5, accent: 0xc3f9ff, kind: "flying" },
+  { id: "drone_pine_south", zone: "palm_grove", x: 29, z: 97, name: "Pine Line Patrol Drone", hp: 5, color: 0x57b8d5, accent: 0xc3f9ff, kind: "small" },
+  { id: "wyvern_pine_north", zone: "palm_grove", x: 48, z: 128, name: "Pine Line Ice Wyvern", hp: 8, color: 0x57b8d5, accent: 0xc3f9ff, kind: "flying" },
+  { id: "drone_depot_west", zone: "loot_canyon", x: 99, z: 99, name: "Supply Depot Patrol Drone", hp: 5, color: 0x57b8d5, accent: 0xc3f9ff, kind: "small" },
+  { id: "wyvern_depot_east", zone: "loot_canyon", x: 128, z: 109, name: "Supply Depot Ice Wyvern", hp: 8, color: 0x57b8d5, accent: 0xc3f9ff, kind: "flying" },
+  { id: "drone_depot_north", zone: "loot_canyon", x: 127, z: 132, name: "East Icefield Patrol Drone", hp: 5, color: 0x57b8d5, accent: 0xc3f9ff, kind: "small" },
+  { id: "drone_bunker_east", zone: "sunset_ridge", x: 96, z: 27, name: "East Bunker Door Drone", hp: 5, color: 0x57b8d5, accent: 0xc3f9ff, kind: "small" },
+  { id: "wyvern_bunker_west", zone: "sunset_ridge", x: 130, z: 54, name: "West Bunker Door Ice Wyvern", hp: 8, color: 0x57b8d5, accent: 0xc3f9ff, kind: "flying" },
+  { id: "drone_bunker_south", zone: "sunset_ridge", x: 114, z: 17, name: "South Ridge Patrol Drone", hp: 5, color: 0x57b8d5, accent: 0xc3f9ff, kind: "small" },
 ].map((definition) => ({
   ...expandWorldPoint(definition),
   modelPath: `${WINTER_MODEL_PATH}${definition.kind === "flying" ? "low-poly-wyvern.glb" : "robot-drone-trio.glb"}`,
@@ -147,6 +156,7 @@ const gameState = {
   interaction: null,
   selectedWeapon: "wand",
   unlockedWeapons: new Set(["wand"]),
+  combatUnlockedWeapons: new Set(),
   hp: 100,
   maxHp: 100,
   shield: 50,
@@ -310,8 +320,8 @@ const TEXT = {
   en: {
     exploring: "YOU ARE EXPLORING",
     codex: "Codex",
-    leaderboard: "Top Explorers",
-    shop: "Island Shop",
+    leaderboard: "Leaderboard",
+    shop: "Shop",
     soundOn: "Sound On",
     soundOff: "Sound Off",
     hp: "HP",
@@ -386,8 +396,8 @@ const TEXT = {
   ar: {
     exploring: "أنت تستكشف الآن",
     codex: "السجل",
-    leaderboard: "أفضل المستكشفين",
-    shop: "متجر الجزيرة",
+    leaderboard: "الترتيب",
+    shop: "المتجر",
     soundOn: "الصوت يعمل",
     soundOff: "الصوت مغلق",
     hp: "الصحة",
@@ -493,7 +503,11 @@ function localizeStaticLabels() {
   document.querySelector("#open-shop").firstChild.textContent = `${text.shop} `;
   document.querySelector("#open-shop").setAttribute("aria-label", text.shop);
   document.querySelector("#open-leaderboard").setAttribute("aria-label", text.leaderboard);
-  document.querySelector("#mute-toggle").textContent = gameState.muted ? text.soundOff : text.soundOn;
+  const muteToggle = document.querySelector("#mute-toggle");
+  muteToggle.textContent = ar ? (gameState.muted ? "إلغاء الكتم" : "كتم الصوت") : (gameState.muted ? "Unmute" : "Mute");
+  muteToggle.setAttribute("aria-label", ar
+    ? (gameState.muted ? "إلغاء كتم الصوت" : "كتم الصوت")
+    : (gameState.muted ? "Unmute sound" : "Mute sound"));
   document.querySelector(".quest-hud > small").textContent = text.adventure;
   document.querySelector("#adventure-start").textContent = text.start;
   document.querySelector("#adventure-complete").textContent = text.complete;
@@ -544,7 +558,10 @@ function localizeStaticLabels() {
     : { wand: "1 Wand", mp40: "2 MP40", ak47: "3 AK-47" };
   document.querySelectorAll("[data-weapon]").forEach((button) => {
     const weaponId = button.getAttribute("data-weapon");
-    if (weaponId && weaponLabels[weaponId]) button.textContent = weaponLabels[weaponId];
+    if (weaponId && weaponLabels[weaponId]) {
+      button.textContent = weaponId === "wand" ? "1" : weaponId === "mp40" ? "2" : "3";
+      button.setAttribute("aria-label", weaponLabels[weaponId]);
+    }
   });
   updateHud();
   if (document.querySelector("#shop-dialog").open) renderShop();
@@ -1585,23 +1602,74 @@ function buildSupplyCrate() {
   supplyCrate = { root, position: new THREE.Vector3(x, 0.55, z), openedUntil: 0 };
 }
 
+function findClearEnemySpawn(definition) {
+  const zoneCenter = ZONE_CENTERS[definition.zone];
+  if (!zoneCenter) throw new Error(`Enemy ${definition.id} references an unknown zone.`);
+
+  const baseX = BASE_WORLD_SIZE / 2 + (definition.x - WORLD.width / 2) / WORLD_EXPANSION;
+  const baseZ = BASE_WORLD_SIZE / 2 + (definition.z - WORLD.depth / 2) / WORLD_EXPANSION;
+  const enemyRadius = definition.boss ? 3 : definition.id.startsWith("guardian_") ? 2.15 : 1.2;
+  const patrolRadius = definition.kind ? Math.hypot(3.2, 2.6) * WORLD_EXPANSION : 0;
+  const candidates = [];
+  for (let offsetX = -8; offsetX <= 8; offsetX += 1) {
+    for (let offsetZ = -8; offsetZ <= 8; offsetZ += 1) {
+      const x = expandWorldCoordinate(baseX + offsetX);
+      const z = expandWorldCoordinate(baseZ + offsetZ);
+      const distance = Math.hypot(offsetX, offsetZ);
+      if (distance <= 8) candidates.push({ x, z, distance });
+    }
+  }
+  candidates.sort((a, b) => a.distance - b.distance);
+
+  for (const candidate of candidates) {
+    const obstacles = worldColliders.filter((collider) => (
+      Math.hypot(collider.x - candidate.x, collider.z - candidate.z)
+      <= patrolRadius + enemyRadius + collider.radius + 1
+    ));
+    const phases = definition.kind ? 128 : 1;
+    let clear = true;
+    for (let index = 0; index < phases; index += 1) {
+      const phase = (index / phases) * Math.PI * 10;
+      const x = candidate.x + (definition.kind ? Math.sin(phase) * 3.2 * WORLD_EXPANSION : 0);
+      const z = candidate.z + (definition.kind ? Math.cos(phase * 0.8) * 2.6 * WORLD_EXPANSION : 0);
+      const candidateBaseX = BASE_WORLD_SIZE / 2 + (x - WORLD.width / 2) / WORLD_EXPANSION;
+      const candidateBaseZ = BASE_WORLD_SIZE / 2 + (z - WORLD.depth / 2) / WORLD_EXPANSION;
+      if (
+        (zoneCenter.x < WORLD.width / 2) !== (candidateBaseX < BASE_WORLD_SIZE / 2)
+        || (zoneCenter.z < WORLD.depth / 2) !== (candidateBaseZ < BASE_WORLD_SIZE / 2)
+        || obstacles.some((collider) => (
+          Math.hypot(collider.x - x, collider.z - z) < enemyRadius + collider.radius + 0.1
+        ))
+      ) {
+        clear = false;
+        break;
+      }
+    }
+    if (!clear) continue;
+
+    if (candidate.distance > 0) {
+      console.info(`Moved ${definition.name} to a clear ${definition.zone} spawn.`);
+    }
+    return { ...definition, x: candidate.x, z: candidate.z };
+  }
+  throw new Error(`No clear spawn location was found for ${definition.name} in ${definition.zone}.`);
+}
+
 function buildInteractiveWorld() {
   PICKUPS.forEach(createWorldPickup);
   BEACONS.forEach(createBeacon);
   buildSupplyCrate();
   const guardianLoads = GUARDIAN_DEFS.map((definition) => {
-    const enemy = createCombatEnemy(definition);
+    const enemy = createCombatEnemy(findClearEnemySpawn(definition));
     return loadEnemyModel(definition.modelPath, enemy, definition.modelHeight);
   });
-  const droneSmall = createCombatEnemy(DRONE_DEFS[0]);
-  const droneFlying = createCombatEnemy(DRONE_DEFS[1]);
+  const droneLoads = DRONE_DEFS.map((definition) => {
+    const enemy = createCombatEnemy(findClearEnemySpawn(definition));
+    return loadEnemyModel(definition.modelPath, enemy, definition.modelHeight);
+  });
   spawnCombatDrop("medkit", { x: expandWorldCoordinate(43), z: expandWorldCoordinate(31) });
   spawnCombatDrop("shield", { x: expandWorldCoordinate(108), z: expandWorldCoordinate(106) });
-  return [
-    ...guardianLoads,
-    loadEnemyModel(DRONE_DEFS[0].modelPath, droneSmall, DRONE_DEFS[0].modelHeight),
-    loadEnemyModel(DRONE_DEFS[1].modelPath, droneFlying, DRONE_DEFS[1].modelHeight),
-  ];
+  return [...guardianLoads, ...droneLoads];
 }
 
 function updateCollectibleVisibility() {
@@ -1995,6 +2063,7 @@ function renderShop() {
 
 function applyShopLoadout() {
   gameState.unlockedWeapons = new Set(["wand"]);
+  for (const weaponId of gameState.combatUnlockedWeapons) gameState.unlockedWeapons.add(weaponId);
   for (const key of ["weapon_mp40", "weapon_ak47"]) {
     if (gameState.shop.owned.includes(key)) gameState.unlockedWeapons.add(key.replace("weapon_", ""));
   }
@@ -2640,6 +2709,11 @@ function spawnCombatDrop(type, position) {
     box(group, [1.35, 1.05, 0.85], [0, 0.75, 0], mats.white);
     box(group, [0.28, 0.86, 0.9], [0, 0.75, -0.02], mats.red);
     box(group, [0.86, 0.28, 0.92], [0, 0.75, -0.02], mats.red);
+  } else if (type === "weapon_crate") {
+    box(group, [1.5, 1.1, 1.2], [0, 0.75, 0], mats.wood);
+    box(group, [1.56, 0.16, 0.16], [0, 0.75, -0.62], mats.gold);
+    box(group, [0.16, 1.12, 1.26], [0, 0.75, 0], mats.paleWood);
+    addMesh(group, new THREE.OctahedronGeometry(0.35, 0), mats.blue, [0, 1.55, 0]);
   } else {
     addMesh(group, new THREE.OctahedronGeometry(0.85, 0), material(0x71daf1, 0.34, { emissive: 0x2989ba, emissiveIntensity: 0.34 }), [0, 0.8, 0]);
     addMesh(group, new THREE.TorusGeometry(1.05, 0.06, 6, 16), mats.white, [0, 0.2, 0]).rotation.x = Math.PI / 2;
@@ -2703,7 +2777,8 @@ function defeatEnemy(enemy) {
   if (!enemy.alive) return;
   enemy.alive = false;
   enemy.root.visible = false;
-  spawnCombatDrop(Math.random() < 0.5 ? "medkit" : "shield", {
+  const dropTypes = ["medkit", "shield", "weapon_crate"];
+  spawnCombatDrop(dropTypes[Math.floor(Math.random() * dropTypes.length)], {
     x: enemy.root.position.x,
     z: enemy.root.position.z,
   });
@@ -2985,9 +3060,6 @@ function updatePlayer(delta) {
   );
   camera.lookAt(player.position.x, player.position.y + 1.7, player.position.z);
 
-  const x = Math.round(playerState.x * WORLD.scale).toString().padStart(4, "0");
-  const z = Math.round(playerState.z * WORLD.scale).toString().padStart(4, "0");
-  coordinates.textContent = `X ${x} · Y ${z}`;
   updateAdventureButtonState();
 }
 
@@ -3156,9 +3228,25 @@ function updateCombat(delta, now) {
       distance = Math.hypot(playerState.x - drop.group.position.x, playerState.z - drop.group.position.z);
     }
     if (distance < 1.9) {
-      if (drop.type === "medkit") healPlayer(32, 0);
-      else healPlayer(0, 27);
-      showMessage(isArabic() ? (drop.type === "medkit" ? "تم جمع حقيبة الإسعاف." : "تم جمع الدرع.") : `${drop.type === "medkit" ? "Medkit" : "Shield"} collected.`, 1800);
+      if (drop.type === "medkit") {
+        healPlayer(32, 0);
+        showMessage(isArabic() ? "تم جمع حقيبة الإسعاف." : "Medkit collected.", 1800);
+      } else if (drop.type === "shield") {
+        healPlayer(0, 27);
+        showMessage(isArabic() ? "تم جمع الدرع." : "Shield collected.", 1800);
+      } else {
+        const weaponId = ["mp40", "ak47"].find((id) => !gameState.unlockedWeapons.has(id));
+        if (weaponId) {
+          gameState.combatUnlockedWeapons.add(weaponId);
+          gameState.unlockedWeapons.add(weaponId);
+          gameState.selectedWeapon = weaponId;
+          buildHeldWeapon(weaponId);
+          updateWeaponButtons();
+          showMessage(isArabic() ? `تم فتح سلاح ${weaponId.toUpperCase()}!` : `${weaponId.toUpperCase()} weapon unlocked!`, 1800);
+        } else {
+          showMessage(isArabic() ? "تم جمع صندوق السلاح." : "Weapon crate collected.", 1800);
+        }
+      }
       drop.life = 0;
     }
     if (drop.life <= 0) {

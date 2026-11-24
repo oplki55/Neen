@@ -1131,3 +1131,324 @@ body {
     text-align: left;
   }
 }
+
+.game-frame {
+  height: min(76vh, 880px);
+  min-height: 500px;
+}
+
+.game-hud {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.hud-top {
+  display: flex;
+  position: static;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  pointer-events: auto;
+}
+
+.zone-card {
+  flex: 0 1 auto;
+  min-height: 42px;
+  padding: 5px 10px 5px 6px;
+  box-shadow: none;
+}
+
+.sun-mark {
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+}
+
+.zone-card small {
+  font-size: 7px;
+}
+
+.zone-card strong {
+  font-size: 11px;
+}
+
+.player-status {
+  display: flex;
+  position: static;
+  width: auto;
+  flex: 1 1 220px;
+  gap: 12px;
+  padding: 6px 10px;
+  box-shadow: none;
+}
+
+.vital {
+  flex: 1 1 0;
+  min-width: 70px;
+}
+
+.hud-right {
+  max-width: none;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  gap: 5px;
+}
+
+.hud-right button {
+  min-height: 32px;
+  padding: 6px 9px;
+  box-shadow: none;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.game-notices {
+  display: flex;
+  min-height: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.scene-message,
+.interaction-prompt,
+.controls-hint {
+  position: static;
+  max-width: 100%;
+  transform: none;
+  box-shadow: none;
+}
+
+.scene-message {
+  padding: 5px 11px;
+}
+
+.interaction-prompt {
+  padding: 5px 8px;
+}
+
+.controls-hint {
+  padding: 5px 9px;
+  font-size: 8px;
+}
+
+.game-lower {
+  display: grid;
+  grid-template-columns: minmax(220px, .8fr) minmax(0, 1.2fr);
+  align-items: start;
+  gap: 12px;
+}
+
+.quest-hud {
+  display: grid;
+  position: static;
+  width: auto;
+  gap: 6px;
+  padding: 12px;
+  box-shadow: none;
+  pointer-events: auto;
+}
+
+.zone-legend {
+  justify-content: flex-start;
+  padding: 4px 0;
+}
+
+.weapon-picker {
+  bottom: 12px;
+  gap: 4px;
+}
+
+.weapon-picker button {
+  width: 32px;
+  min-height: 29px;
+  padding: 0;
+  border-radius: 9px;
+  font-size: 9px;
+}
+
+.interaction-prompt[hidden] {
+  display: none;
+}
+
+@media (pointer: coarse), (max-width: 760px) {
+  .game-frame {
+    height: min(66svh, 760px);
+    min-height: 420px;
+  }
+
+  .game-hud {
+    gap: 7px;
+    margin-top: 8px;
+  }
+
+  .hud-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    gap: 6px;
+  }
+
+  .zone-card {
+    min-width: 0;
+    min-height: 38px;
+    gap: 5px;
+    padding: 4px 6px;
+  }
+
+  .sun-mark {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    font-size: 15px;
+  }
+
+  .zone-card div {
+    min-width: 0;
+  }
+
+  .zone-card strong {
+    display: block;
+    max-width: 100%;
+    font-size: 8px;
+    line-height: 1.15;
+  }
+
+  .zone-card small {
+    font-size: 6px;
+  }
+
+  .player-status {
+    min-width: 0;
+    gap: 5px;
+    padding: 5px 6px;
+  }
+
+  .vital {
+    min-width: 0;
+    gap: 3px;
+    font-size: 7px;
+  }
+
+  .vital span {
+    gap: 3px;
+  }
+
+  .vital b {
+    font-size: 6px;
+  }
+
+  .vital i {
+    height: 4px;
+  }
+
+  .hud-right {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: 100%;
+    gap: 4px;
+  }
+
+  .hud-right button {
+    min-width: 0;
+    min-height: 28px;
+    padding: 4px 3px;
+    border-radius: 8px;
+    font-size: 7px;
+  }
+
+  .hud-right #open-shop span {
+    display: none;
+  }
+
+  .game-notices {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .scene-message {
+    font-size: 9px;
+  }
+
+  .controls-hint {
+    display: none;
+  }
+
+  .game-lower {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .quest-hud {
+    gap: 4px;
+    padding: 9px;
+  }
+
+  .quest-hud > strong {
+    font-size: 12px;
+  }
+
+  #objectives {
+    max-height: 58px;
+  }
+
+  .zone-legend {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px 9px;
+    padding: 3px 4px;
+    font-size: 8px;
+  }
+
+  .zone-legend span {
+    align-items: flex-start;
+  }
+
+  .touch-controls {
+    right: 12px;
+    bottom: 10px;
+    left: 12px;
+  }
+
+  .joystick {
+    width: 80px;
+    height: 80px;
+  }
+
+  .joystick-ring {
+    inset: 14px;
+  }
+
+  .joystick-knob {
+    width: 34px;
+    height: 34px;
+  }
+
+  .touch-buttons {
+    grid-template-columns: repeat(2, 44px);
+    gap: 5px;
+  }
+
+  .touch-buttons button {
+    min-height: 36px;
+    border-radius: 11px;
+    font-size: 8px;
+  }
+
+  .weapon-picker {
+    bottom: 104px;
+    gap: 3px;
+  }
+
+  .weapon-picker button {
+    width: 30px;
+    min-height: 28px;
+    font-size: 8px;
+  }
+
+  .interaction-prompt button {
+    min-height: 27px;
+    font-size: 8px;
+  }
+}
