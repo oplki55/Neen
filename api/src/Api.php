@@ -560,6 +560,51 @@ final class Api
                 $this->send(true, ['state' => $this->sunnyIsland()->state($auth['user_id'])]);
             }
 
+            if ($path === '/api/games/sunny-island/shop') {
+                $this->expectMethod($method, 'GET');
+                $auth = $this->requireAuth();
+                $this->send(true, $this->sunnyIslandShop()->state($auth['user_id']));
+            }
+
+            if ($path === '/api/games/sunny-island/leaderboard') {
+                $this->expectMethod($method, 'GET');
+                $this->send(
+                    true,
+                    $this->sunnyIslandShop()->leaderboard(),
+                    [],
+                    200,
+                    ['Cache-Control' => 'public, max-age=60, stale-while-revalidate=30'],
+                );
+            }
+
+            if ($path === '/api/games/sunny-island/shop/buy') {
+                $this->expectMethod($method, 'POST');
+                $auth = $this->requireAuth();
+                $this->requireCsrf($auth);
+                $this->requireAllowedFields(['item_key']);
+                $itemKey = $this->requiredString('item_key', 3, 80);
+                $idempotencyKey = 'island-shop-' . hash('sha256', $auth['user_id'] . ':' . $itemKey);
+                $this->send(true, $this->sunnyIslandShop()->buy(
+                    $auth['user_id'],
+                    $itemKey,
+                    $idempotencyKey,
+                ));
+            }
+
+            if ($path === '/api/games/sunny-island/loadout') {
+                $this->expectMethod($method, 'POST');
+                $auth = $this->requireAuth();
+                $this->requireCsrf($auth);
+                $this->requireAllowedFields(['skin', 'weapon', 'pet', 'trail']);
+                $this->send(true, $this->sunnyIslandShop()->saveLoadout(
+                    $auth['user_id'],
+                    $this->body['skin'] ?? null,
+                    $this->body['weapon'] ?? null,
+                    $this->body['pet'] ?? null,
+                    $this->body['trail'] ?? null,
+                ));
+            }
+
             if ($path === '/api/games/sunny-island/start') {
                 $this->expectMethod($method, 'POST');
                 $auth = $this->requireAuth();
@@ -3017,6 +3062,11 @@ final class Api
     private function sunnyIsland(): SunnyIsland
     {
         return new SunnyIsland($this->db, new GameRewards($this->db));
+    }
+
+    private function sunnyIslandShop(): SunnyIslandShop
+    {
+        return new SunnyIslandShop($this->db);
     }
 
     private function attendance(): Attendance

@@ -227,6 +227,98 @@
   gap: 8px;
 }
 
+.sunny-vitals {
+  display: grid;
+  width: 180px;
+  gap: 5px;
+}
+
+.sunny-vital {
+  display: grid;
+  gap: 3px;
+}
+
+.sunny-vital > div {
+  display: flex;
+  justify-content: space-between;
+  color: #66818b;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.sunny-vital strong {
+  color: #465e65;
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.sunny-vital-track {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(82 111 117 / 16%);
+}
+
+.sunny-vital-track span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  transition: width .12s linear;
+}
+
+.sunny-vital-hp .sunny-vital-track span {
+  background: linear-gradient(90deg, #e95d75, #ff9a82);
+}
+
+.sunny-vital-shield .sunny-vital-track span {
+  background: linear-gradient(90deg, #4aa7da, #82e8ef);
+}
+
+.sunny-weapon-bar {
+  display: flex;
+  gap: 5px;
+}
+
+.sunny-weapon-bar button {
+  display: grid;
+  min-width: 56px;
+  min-height: 48px;
+  place-items: center;
+  border: 1px solid #dde8ea;
+  border-radius: 10px;
+  background: #f7fbfb;
+  color: #627980;
+  cursor: pointer;
+  font: inherit;
+}
+
+.sunny-weapon-bar button span {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #dfecef;
+  font-size: 8px;
+  line-height: 16px;
+}
+
+.sunny-weapon-bar button strong {
+  font-size: 8px;
+}
+
+.sunny-weapon-bar button.is-active {
+  border-color: #ef9645;
+  background: #fff7e8;
+  box-shadow: 0 0 0 2px rgb(239 150 69 / 18%);
+  color: #9b5a28;
+}
+
+.sunny-weapon-bar button:disabled {
+  cursor: not-allowed;
+  opacity: .38;
+}
+
 .sunny-quiet-button,
 .sunny-main-button,
 .sunny-complete-button {
@@ -564,6 +656,282 @@
   0% { opacity: 0; transform: translate(-50%, -50%) scale(.65) rotate(-7deg); }
   72% { opacity: 1; transform: translate(-50%, -50%) scale(1.06) rotate(2deg); }
   100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0); }
+}
+
+.sunny-shop-dialog {
+  width: min(760px, calc(100% - 24px));
+  max-height: min(84vh, 800px);
+  padding: clamp(18px, 4vw, 30px);
+  border: 1px solid #d5e7ea;
+  border-radius: 22px;
+  background: #faffff;
+  box-shadow: 0 24px 80px rgb(23 75 92 / 30%);
+  color: #294d5c;
+}
+
+.sunny-shop-dialog::backdrop {
+  background: rgb(18 48 62 / 55%);
+  backdrop-filter: blur(4px);
+}
+
+.sunny-shop-wallet {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin: 13px 0 12px;
+  padding: 11px 14px;
+  border-radius: 13px;
+  background: #eef7f7;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.sunny-shop-wallet strong {
+  color: #c07931;
+  font-size: 16px;
+}
+
+.sunny-shop-wallet small {
+  grid-column: 1 / -1;
+  color: #78909a;
+  font-size: 8px;
+}
+
+.sunny-shop-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  margin-bottom: 12px;
+}
+
+.sunny-shop-tabs button {
+  min-height: 38px;
+  border: 1px solid #dce8ea;
+  border-radius: 10px;
+  background: #f7fbfb;
+  color: #607b83;
+  cursor: pointer;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.sunny-shop-tabs button.is-active {
+  border-color: #ef9645;
+  background: #fff3dc;
+  color: #9b5a28;
+}
+
+.sunny-shop-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  max-height: 430px;
+  overflow: auto;
+}
+
+.sunny-shop-card {
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  gap: 10px;
+  min-height: 98px;
+  padding: 11px;
+  border: 1px solid #dde8ea;
+  border-radius: 15px;
+  background: #fff;
+}
+
+.sunny-shop-art {
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #eef8f7, #fff1d8);
+  color: #cc7b35;
+  font-size: 25px;
+}
+
+.sunny-shop-card-copy {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+}
+
+.sunny-shop-card-copy strong {
+  font-size: 11px;
+}
+
+.sunny-shop-card-copy small {
+  color: #7b9299;
+  font-size: 8px;
+}
+
+.sunny-shop-card-actions {
+  display: flex;
+  align-items: end;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.sunny-shop-card-actions button,
+.sunny-shop-coins-link {
+  min-height: 32px;
+  border: 0;
+  border-radius: 9px;
+  background: #ef9645;
+  box-shadow: 0 3px 0 #cb7131;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 8px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.sunny-shop-card-actions button {
+  padding: 0 10px;
+}
+
+.sunny-shop-card-actions button.is-equipped {
+  background: #78bda8;
+  box-shadow: none;
+  cursor: default;
+}
+
+.sunny-shop-coins-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  background: #607b83;
+  box-shadow: none;
+}
+
+.sunny-leaderboard-dialog {
+  width: min(680px, calc(100% - 24px));
+  max-height: min(82vh, 760px);
+  padding: clamp(18px, 4vw, 30px);
+  border: 1px solid #d5e7ea;
+  border-radius: 22px;
+  background: #faffff;
+  box-shadow: 0 24px 80px rgb(23 75 92 / 30%);
+  color: #294d5c;
+}
+
+.sunny-leaderboard-dialog::backdrop {
+  background: rgb(18 48 62 / 55%);
+  backdrop-filter: blur(4px);
+}
+
+.sunny-leaderboard-status {
+  margin: 12px 0;
+  color: #78909a;
+  font-size: 10px;
+}
+
+.sunny-leaderboard-list {
+  display: grid;
+  gap: 8px;
+  max-height: 520px;
+  overflow: auto;
+}
+
+.sunny-leaderboard-row {
+  display: grid;
+  grid-template-columns: 38px minmax(90px, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 72px;
+  padding: 9px 12px;
+  border: 1px solid #dde8ea;
+  border-radius: 15px;
+  background: #fff;
+}
+
+.sunny-leaderboard-rank {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff1d8;
+  color: #b97932;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.sunny-leaderboard-player {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.sunny-leaderboard-player strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.sunny-leaderboard-player small {
+  color: #78909a;
+  font-size: 8px;
+}
+
+.sunny-leaderboard-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: end;
+  gap: 5px;
+}
+
+.sunny-leaderboard-badge {
+  max-width: 110px;
+  overflow: hidden;
+  padding: 5px 7px;
+  border-radius: 999px;
+  background: #eef7f7;
+  color: #4e7380;
+  font-size: 7px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[dir="rtl"] .sunny-leaderboard-badges {
+  justify-content: flex-start;
+}
+
+.sunny-knockdown-banner[hidden] {
+  display: none;
+}
+
+.sunny-knockdown-banner {
+  position: absolute;
+  z-index: 8;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  min-width: min(330px, calc(100% - 34px));
+  gap: 4px;
+  padding: 18px 22px;
+  border: 2px solid #fff;
+  border-radius: 17px;
+  background: rgb(62 38 69 / 94%);
+  box-shadow: 0 14px 36px rgb(37 30 58 / 36%);
+  color: #fff;
+  text-align: center;
+  transform: translate(-50%, -50%);
+}
+
+.sunny-knockdown-banner strong {
+  color: #ff9eb9;
+  font-size: 20px;
+}
+
+.sunny-knockdown-banner span {
+  color: #d7edf0;
+  font-size: 10px;
+  font-weight: 800;
 }
 
 .sunny-interaction button {
@@ -1113,6 +1481,13 @@
     min-height: 39px;
     border-radius: 12px;
     background: rgb(92 123 143 / 90%);
+  }
+  .sunny-touch-buttons [data-fire-button] {
+    grid-column: 2;
+    grid-row: 2;
+    min-height: 48px;
+    border-radius: 50%;
+    background: rgb(235 94 145 / 94%);
   }
   .sunny-controls-hint {
     display: none;

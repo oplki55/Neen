@@ -7,10 +7,34 @@ require_once __DIR__ . '/src/Database.php';
 try {
     $db = Database::connect();
     if ($db->getAttribute(PDO::ATTR_DRIVER_NAME) !== 'mysql') {
-        throw new RuntimeException('Database migration requires MySQL.');
+        if ($db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            $db->exec(
+                'CREATE TABLE IF NOT EXISTS user_island_inventory (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    item_key TEXT NOT NULL,
+                    price_paid_coins INTEGER NOT NULL,
+                    created_at TEXT NOT NULL,
+                    UNIQUE (user_id, item_key)
+                )',
+            );
+            $db->exec(
+                'CREATE TABLE IF NOT EXISTS user_island_loadout (
+                    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+                    equipped_skin TEXT NULL,
+                    equipped_weapon TEXT NULL,
+                    equipped_pet TEXT NULL,
+                    equipped_trail TEXT NULL,
+                    updated_at TEXT NOT NULL
+                )',
+            );
+            fwrite(STDOUT, "SQLite Sunny Island shop schema installed successfully.\n");
+            exit;
+        }
+        throw new RuntimeException('Database migration requires MySQL or SQLite.');
     }
 
-    foreach (['schema.sql', 'coins-schema.sql', 'games-schema.sql', 'attendance-schema.sql', 'homepage-rewards-schema.sql', 'community-schema.sql', 'diamonds-schema.sql', 'news-ticker-schema.sql'] as $schemaFile) {
+    foreach (['schema.sql', 'coins-schema.sql', 'games-schema.sql', 'sunny-island-shop-schema.sql', 'attendance-schema.sql', 'homepage-rewards-schema.sql', 'community-schema.sql', 'diamonds-schema.sql', 'news-ticker-schema.sql'] as $schemaFile) {
         if ($schemaFile === 'coins-schema.sql') {
             $columns = $db->query(
                 "SELECT COLUMN_NAME FROM information_schema.COLUMNS

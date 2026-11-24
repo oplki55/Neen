@@ -11,9 +11,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Exo+2:wght@400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700&family=Oxanium:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css?v=20261123scrollperf1" />
-    <link rel="stylesheet" href="sunny-island.css?v=20261121p" />
+    <link rel="stylesheet" href="sunny-island.css?v=20261124phase3" />
     <script src="script.js?v=20261123scrollperf1" defer></script>
-    <script src="sunny-island.js?v=20261121p" defer></script>
+    <script src="sunny-island.js?v=20261124phase3" defer></script>
   </head>
   <body>
     <div class="site-shell">
@@ -48,6 +48,21 @@
                 <small data-xp-label dir="ltr">0 / 300 XP</small>
               </div>
             </div>
+            <div class="sunny-vitals" aria-label="Player health and shield">
+              <div class="sunny-vital sunny-vital-hp">
+                <div><span>HP</span><strong data-hp-label>100 / 100</strong></div>
+                <span class="sunny-vital-track"><span data-hp-fill></span></span>
+              </div>
+              <div class="sunny-vital sunny-vital-shield">
+                <div><span>Shield</span><strong data-shield-label>50 / 50</strong></div>
+                <span class="sunny-vital-track"><span data-shield-fill></span></span>
+              </div>
+            </div>
+            <div class="sunny-weapon-bar" data-weapon-bar aria-label="Weapons">
+              <button type="button" data-weapon="wand" class="is-active" aria-label="Starlight Wand"><span>1</span><strong>Wand</strong></button>
+              <button type="button" data-weapon="mp40" disabled aria-label="MP40 Rapid"><span>2</span><strong>MP40</strong></button>
+              <button type="button" data-weapon="ak47" disabled aria-label="AK-47 Heavy"><span>3</span><strong>AK-47</strong></button>
+            </div>
             <div class="sunny-wallet">
               <span aria-hidden="true">✦</span>
               <div><small>Earned Coins</small><strong data-earned-balance>—</strong></div>
@@ -68,6 +83,9 @@
             </label>
             <div class="sunny-actions-top">
               <button class="sunny-quiet-button" type="button" data-codex-open aria-haspopup="dialog">Island Codex <span data-codex-count>0/9</span></button>
+              <button class="sunny-quiet-button" type="button" data-leaderboard-open aria-haspopup="dialog">Top Explorers</button>
+              <button class="sunny-quiet-button sunny-shop-button" type="button" data-shop-open aria-haspopup="dialog">Island Shop <span data-shop-coins>—</span></button>
+              <button class="sunny-quiet-button sunny-mute-button" type="button" data-mute-toggle aria-pressed="false">Sound On</button>
               <button class="sunny-main-button" type="button" data-adventure-start>Start Daily Adventure</button>
             </div>
           </div>
@@ -106,6 +124,9 @@
                 <div class="sunny-victory-banner" data-victory-banner role="status" aria-live="assertive" hidden>
                   <span>DAILY ADVENTURE CLEARED</span><strong>NEEN VICTORY!</strong>
                 </div>
+                <div class="sunny-knockdown-banner" data-knockdown-banner role="status" aria-live="assertive" hidden>
+                  <strong>Knocked Down</strong><span>Respawning at Safe Zone…</span>
+                </div>
               </div>
               <div class="sunny-touch-controls" data-touch-controls>
                 <div class="sunny-joystick" data-joystick aria-label="Movement joystick">
@@ -114,6 +135,7 @@
                 <div class="sunny-touch-buttons">
                   <button type="button" data-jump-button aria-label="Jump">Jump</button>
                   <button type="button" data-touch-action aria-label="Interact">Action</button>
+                  <button type="button" data-fire-button aria-label="Fire weapon">Fire</button>
                   <button type="button" data-dash-button aria-label="Dash">Dash</button>
                 </div>
               </div>
@@ -156,6 +178,31 @@
         </div>
         <p class="sunny-codex-summary" data-codex-summary>Discover keepsakes while you explore.</p>
         <div class="sunny-codex-grid" data-codex-grid></div>
+      </dialog>
+      <dialog class="sunny-shop-dialog" data-shop-dialog aria-labelledby="shop-title">
+        <div class="sunny-codex-header">
+          <div><p class="eyebrow">متجر الجزيرة · ISLAND SHOP</p><h2 id="shop-title">NEEN <span>Shop</span></h2></div>
+          <button type="button" class="sunny-dialog-close" data-shop-close aria-label="Close Island Shop">×</button>
+        </div>
+        <div class="sunny-shop-wallet">
+          <span>NEEN Coins</span><strong data-shop-coins-large>—</strong>
+          <small><span data-shop-purchased>0</span> Purchased · <span data-shop-earned>0</span> Earned</small>
+        </div>
+        <div class="sunny-shop-tabs" role="tablist" aria-label="Shop categories">
+          <button type="button" data-shop-tab="weapons" class="is-active" role="tab">Weapons</button>
+          <button type="button" data-shop-tab="skins" role="tab">Skins</button>
+          <button type="button" data-shop-tab="pets" role="tab">Pets</button>
+          <button type="button" data-shop-tab="trails" role="tab">Dash Trails</button>
+        </div>
+        <div class="sunny-shop-grid" data-shop-grid></div>
+      </dialog>
+      <dialog class="sunny-leaderboard-dialog" data-leaderboard-dialog aria-labelledby="leaderboard-title">
+        <div class="sunny-codex-header">
+          <div><p class="eyebrow">صدارة الجزيرة · TOP EXPLORERS</p><h2 id="leaderboard-title">Island <span>Leaderboard</span></h2></div>
+          <button type="button" class="sunny-dialog-close" data-leaderboard-close aria-label="Close Island Leaderboard">×</button>
+        </div>
+        <p class="sunny-leaderboard-status" data-leaderboard-status role="status">Loading explorers…</p>
+        <div class="sunny-leaderboard-list" data-leaderboard-list></div>
       </dialog>
 
       <footer class="site-footer"><a class="wordmark footer-wordmark" href="index.html">NEEN<span>.</span></a><p>FREE FIRE CONTENT <span>·</span> @NEEN_0O</p><a class="back-to-top" href="events-challenges.html">CHALLENGES <span aria-hidden="true">↗</span></a></footer>

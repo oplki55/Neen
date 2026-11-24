@@ -17,6 +17,8 @@
   const dashButton = document.querySelector("[data-dash-button]");
   const joystick = document.querySelector("[data-joystick]");
   const joystickKnob = document.querySelector("[data-joystick-knob]");
+  const shopDialog = document.querySelector("[data-shop-dialog]");
+  const leaderboardDialog = document.querySelector("[data-leaderboard-dialog]");
   if (
     !(canvas instanceof HTMLCanvasElement)
     || !(statusNode instanceof HTMLElement)
@@ -28,6 +30,8 @@
     || !(objectivesNode instanceof HTMLElement)
     || !(startButton instanceof HTMLButtonElement)
     || !(completeButton instanceof HTMLButtonElement)
+    || !(shopDialog instanceof HTMLDialogElement)
+    || !(leaderboardDialog instanceof HTMLDialogElement)
   ) return;
 
   const context = canvas.getContext("2d", { alpha: false });
@@ -49,6 +53,30 @@
     palm_grove: "قصر أوراق التاج",
     loot_canyon: "مصنع الصناديق المعلقة",
     sunset_ridge: "برج جرس الانقلاب الشمسي",
+  };
+  const UI_AR = {
+    hp: "الصحة",
+    shield: "الدرع",
+    fire: "إطلاق",
+    soundOn: "الصوت يعمل",
+    soundOff: "الصوت مغلق",
+    shop: "متجر الجزيرة",
+    leaderboard: "صدارة الجزيرة",
+    weapons: "الأسلحة",
+    skins: "المظاهر",
+    pets: "الحيوانات الأليفة",
+    trails: "مسارات الانطلاق",
+    buy: "شراء",
+    equip: "تجهيز",
+    equipped: "تم التجهيز",
+    getCoins: "احصل على كوينز نين",
+    coins: "كوينز نين",
+    purchased: "مشتراة",
+    earned: "مكتسبة",
+    level: "المستوى",
+    xp: "خبرة",
+    completed: "مغامرات مكتملة",
+    noCosmetics: "بدون زي",
   };
   const isArabic = () =>
     document.documentElement.lang?.toLowerCase().startsWith("ar") ||
@@ -194,6 +222,19 @@
     { id: "snoop-sticker-09", name: "Sunset Ember", jacket: "#3a293d", sleeve: "#df704f", accent: "#ffc078", trim: "#f3d16c" },
   ];
   const AVATAR_STORAGE_KEY = "neen_sunny_avatar";
+  const MUTE_STORAGE_KEY = "neen_sunny_muted";
+  const readMutedPreference = () => {
+    try {
+      return window.localStorage.getItem(MUTE_STORAGE_KEY) === "true";
+    } catch {
+      return false;
+    }
+  };
+  const WEAPONS = {
+    wand: { name: "Starlight Wand", cooldown: 260, speed: 790, life: .95, damage: 1, range: 660, color: "#ff78bd", trim: "#ffe078" },
+    mp40: { name: "MP40 Rapid", cooldown: 105, speed: 920, life: .58, damage: 1, range: 500, color: "#70e4ff", trim: "#eaffff" },
+    ak47: { name: "AK-47 Heavy", cooldown: 620, speed: 1080, life: 1.25, damage: 2, range: 1000, color: "#ffb45c", trim: "#fff1bc", knockback: 52 },
+  };
   const readSavedAvatar = () => {
     try {
       const saved = window.localStorage.getItem(AVATAR_STORAGE_KEY);
@@ -274,6 +315,26 @@
     guardianStates: {},
     lastBeamAt: 0,
     playerHitUntil: 0,
+    hp: 100,
+    maxHp: 100,
+    shield: 50,
+    maxShield: 50,
+    invulnerableUntil: 0,
+    knockedDownUntil: 0,
+    selectedWeapon: "wand",
+    temporaryWeapons: new Set(["wand"]),
+    drones: [],
+    lootDrops: [],
+    shockTelegraphs: [],
+    radialBursts: [],
+    bossSlamUntil: 0,
+    bossSlamOrigin: null,
+    bossSlamTriggeredAt: 0,
+    muted: readMutedPreference(),
+    audioContext: null,
+    shop: { catalog: [], owned: [], loadout: { skin: null, weapon: null, pet: null, trail: null }, wallet: { earned: 0, purchased: 0, total: 0 } },
+    shopCategory: "weapons",
+    petPosition: null,
   };
 
   const api = async (path, method = "GET", data = null) => {
@@ -387,7 +448,18 @@
     const ar = isArabic();
     const h1 = document.getElementById("sunny-title");
     if (h1) {
-      h1.innerHTML = ar ? "جزيرة <span>نينو</span>" : "NENO <span>LAND</span>";
+      h1.replaceChildren();
+      if (ar) {
+        h1.append(document.createTextNode("جزيرة "));
+        const span = document.createElement("span");
+        span.textContent = "نينو";
+        h1.append(span);
+      } else {
+        h1.append(document.createTextNode("NENO "));
+        const span = document.createElement("span");
+        span.textContent = "LAND";
+        h1.append(span);
+      }
     }
     const crumb = document.querySelector(".sunny-crumbs span:last-child");
     if (crumb) {
@@ -399,6 +471,44 @@
   const renderProgress = () => {
     syncIslandBrandTitle();
     const ar = isArabic();
+    const leaderboardButton = document.querySelector("[data-leaderboard-open]");
+    const shopButton = document.querySelector("[data-shop-open]");
+    const muteButton = document.querySelector("[data-mute-toggle]");
+    const fireButtonLabel = document.querySelector("[data-fire-button]");
+    const hpLabelTitle = document.querySelector(".sunny-vital-hp > div span");
+    const shieldLabelTitle = document.querySelector(".sunny-vital-shield > div span");
+    if (leaderboardButton) leaderboardButton.textContent = ar ? "صدارة الجزيرة" : "Top Explorers";
+    if (shopButton) {
+      const coins = shopButton.querySelector("[data-shop-coins]");
+      shopButton.replaceChildren();
+      shopButton.append(document.createTextNode(ar ? "متجر الجزيرة " : "Island Shop "));
+      if (coins) shopButton.append(coins);
+      else {
+        const coinNode = document.createElement("span");
+        coinNode.setAttribute("data-shop-coins", "");
+        coinNode.textContent = String(state.shop.wallet.total);
+        shopButton.append(coinNode);
+      }
+    }
+    if (muteButton) {
+      muteButton.textContent = ar
+        ? (state.muted ? UI_AR.soundOff : UI_AR.soundOn)
+        : (state.muted ? "Sound Off" : "Sound On");
+    }
+    if (fireButtonLabel) fireButtonLabel.textContent = ar ? UI_AR.fire : "Fire";
+    if (hpLabelTitle) hpLabelTitle.textContent = ar ? UI_AR.hp : "HP";
+    if (shieldLabelTitle) shieldLabelTitle.textContent = ar ? UI_AR.shield : "Shield";
+    document.querySelectorAll("[data-shop-tab]").forEach((tab) => {
+      const category = tab.getAttribute("data-shop-tab");
+      if (!category) return;
+      const labels = {
+        weapons: ar ? UI_AR.weapons : "Weapons",
+        skins: ar ? UI_AR.skins : "Skins",
+        pets: ar ? UI_AR.pets : "Pets",
+        trails: ar ? UI_AR.trails : "Dash Trails",
+      };
+      tab.textContent = labels[category];
+    });
     const lvlInfo = levelProgressFromXp(state.progress.xp);
     const level = Math.max(1, lvlInfo.level);
     const levelNode = document.querySelector("[data-level]");
@@ -411,6 +521,14 @@
     if (xpFill) xpFill.style.width = `${Math.min(100, (lvlInfo.currentXp / lvlInfo.requiredXp) * 100)}%`;
     if (xpLabel) xpLabel.textContent = `${formatNumber(lvlInfo.currentXp)} / ${formatNumber(lvlInfo.requiredXp)} XP`;
     if (codexCount) codexCount.textContent = `${state.progress.unlocked_collectibles.length}/${state.codex.length || 9}`;
+    const hpFill = document.querySelector("[data-hp-fill]");
+    const hpLabel = document.querySelector("[data-hp-label]");
+    const shieldFill = document.querySelector("[data-shield-fill]");
+    const shieldLabel = document.querySelector("[data-shield-label]");
+    if (hpFill) hpFill.style.width = `${100 * state.hp / state.maxHp}%`;
+    if (hpLabel) hpLabel.textContent = `${state.hp} / ${state.maxHp}`;
+    if (shieldFill) shieldFill.style.width = `${100 * state.shield / state.maxShield}%`;
+    if (shieldLabel) shieldLabel.textContent = `${state.shield} / ${state.maxShield}`;
 
     const attempts = document.querySelector("[data-attempts]");
     const rewardNode = document.querySelector("[data-reward]");
@@ -625,6 +743,235 @@
     renderProgress();
   };
 
+  const applyShopLoadout = () => {
+    const loadout = state.shop.loadout;
+    for (const weaponId of ["weapon_mp40", "weapon_ak47"]) {
+      if (state.shop.owned.includes(weaponId)) {
+        state.temporaryWeapons.add(weaponId.replace("weapon_", ""));
+        const button = document.querySelector(`[data-weapon="${weaponId.replace("weapon_", "")}"]`);
+        if (button instanceof HTMLButtonElement) button.disabled = false;
+      }
+    }
+    if (loadout.weapon && loadout.weapon !== "wand") {
+      switchWeapon(loadout.weapon.replace("weapon_", ""));
+    }
+  };
+
+  const shopItemSymbol = (item) => {
+    if (item.category === "weapons") return item.key === "weapon_mp40" ? "M" : "A";
+    if (item.category === "skins") return "S";
+    if (item.category === "pets") return "P";
+    return "T";
+  };
+
+  const shopItemEquipped = (item) => {
+    const field = item.category === "skins" ? "skin"
+      : item.category === "weapons" ? "weapon"
+        : item.category === "pets" ? "pet" : "trail";
+    return state.shop.loadout[field] === item.key;
+  };
+
+  const renderShop = () => {
+    const grid = document.querySelector("[data-shop-grid]");
+    if (!(grid instanceof HTMLElement)) return;
+    grid.replaceChildren();
+    const ar = isArabic();
+    const ownedSet = new Set(state.shop.owned);
+    const items = state.shop.catalog.filter((item) => item.category === state.shopCategory);
+    for (const item of items) {
+      const card = document.createElement("article");
+      card.className = "sunny-shop-card";
+      const art = document.createElement("div");
+      art.className = "sunny-shop-art";
+      art.textContent = shopItemSymbol(item);
+      const copy = document.createElement("div");
+      copy.className = "sunny-shop-card-copy";
+      const title = document.createElement("strong");
+      const shopNamesAR = {
+        "MP40 Rapid": "إم بي 40 السريع",
+        "AK-47 Heavy": "آي كيه 47 الثقيل",
+        "Neon Crown": "تاج النيون",
+        "Sakura Bloom": "ازهار ساكورا",
+        "Golden Empress": "الإمبراطورة الذهبية",
+        "Snoop Classic": "سنوب كلاسيك",
+        "Snoop Cyber": "سنوب سايبور",
+        "Neon Pink": "نيون وردي",
+        "Cyber Lightning": "برق سايبور",
+        "Solar Gold": "ذهبي شمسي",
+      };
+      title.textContent = ar ? (shopNamesAR[item.name] || item.name) : item.name;
+      const meta = document.createElement("small");
+      const categoryAr = {
+        weapons: UI_AR.weapons,
+        skins: UI_AR.skins,
+        pets: UI_AR.pets,
+        trails: UI_AR.trails,
+      };
+      meta.textContent = ar
+        ? `${categoryAr[item.category]} · ${item.price} ${UI_AR.coins}`
+        : `${item.category.replace(/s$/, "")} · ${item.price} Coins`;
+      const actions = document.createElement("div");
+      actions.className = "sunny-shop-card-actions";
+      const owned = ownedSet.has(item.key);
+      const equipped = shopItemEquipped(item);
+      const action = document.createElement("button");
+      action.type = "button";
+      if (owned && equipped) {
+        action.textContent = ar ? UI_AR.equipped : "Equipped";
+        action.className = "is-equipped";
+        action.disabled = true;
+      } else if (owned) {
+        action.textContent = ar ? UI_AR.equip : "Equip";
+        action.addEventListener("click", () => void equipShopItem(item));
+      } else {
+        action.textContent = ar ? `${UI_AR.buy} · ${item.price}` : `Buy · ${item.price}`;
+        if (state.shop.wallet.total < item.price) {
+          const link = document.createElement("a");
+          link.className = "sunny-shop-coins-link";
+          link.href = "diamonds.html";
+          link.textContent = ar ? `${UI_AR.getCoins} ↗` : "Get NEEN Coins ↗";
+          actions.append(link);
+        }
+        action.addEventListener("click", () => void buyShopItem(item));
+      }
+      actions.prepend(action);
+      copy.append(title, meta, actions);
+      card.append(art, copy);
+      grid.append(card);
+    }
+  };
+
+  const refreshShop = async () => {
+    if (!state.authenticated) return;
+    try {
+      const result = await api("/api/games/sunny-island/shop");
+      state.shop = result;
+      const wallet = state.shop.wallet;
+      for (const node of document.querySelectorAll("[data-shop-coins]")) node.textContent = String(wallet.total);
+      const large = document.querySelector("[data-shop-coins-large]");
+      const purchased = document.querySelector("[data-shop-purchased]");
+      const earned = document.querySelector("[data-shop-earned]");
+      if (large) large.textContent = String(wallet.total);
+      if (purchased) purchased.textContent = String(wallet.purchased);
+      if (earned) earned.textContent = String(wallet.earned);
+      applyShopLoadout();
+      renderShop();
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "The Island Shop could not be loaded.", true);
+    }
+  };
+
+  let leaderboardRows = [];
+  const cosmeticName = (key, fallback) => {
+    const names = {
+      skin_neon_crown: "Neon Crown",
+      skin_sakura_bloom: "Sakura Bloom",
+      skin_golden_empress: "Golden Empress",
+      pet_snoop_classic: "Snoop Classic",
+      pet_snoop_cyber: "Snoop Cyber",
+    };
+    return key && names[key] ? names[key] : fallback;
+  };
+
+  const renderLeaderboard = () => {
+    const list = document.querySelector("[data-leaderboard-list]");
+    const status = document.querySelector("[data-leaderboard-status]");
+    if (!(list instanceof HTMLElement) || !(status instanceof HTMLElement)) return;
+    list.replaceChildren();
+    const ar = isArabic();
+    if (leaderboardRows.length === 0) {
+      status.textContent = ar ? "لا يوجد مستكشفون بعد." : "No island explorers yet.";
+      return;
+    }
+    status.textContent = ar ? "أفضل 10 مستكشفين" : "Top 10 island explorers";
+    for (let index = 0; index < leaderboardRows.length; index++) {
+      const row = leaderboardRows[index];
+      const card = document.createElement("article");
+      card.className = "sunny-leaderboard-row";
+      const rank = document.createElement("span");
+      rank.className = "sunny-leaderboard-rank";
+      rank.textContent = `#${index + 1}`;
+      const player = document.createElement("div");
+      player.className = "sunny-leaderboard-player";
+      const username = document.createElement("strong");
+      username.textContent = row.username;
+      const details = document.createElement("small");
+      details.textContent = ar
+        ? `${UI_AR.level} ${row.island_level} · ${row.xp} ${UI_AR.xp} · ${row.completed_adventures} ${UI_AR.completed}`
+        : `Level ${row.island_level} · ${row.xp} XP · ${row.completed_adventures} completed`;
+      player.append(username, details);
+      const badges = document.createElement("div");
+      badges.className = "sunny-leaderboard-badges";
+      if (row.equipped_skin) {
+        const skin = document.createElement("span");
+        skin.className = "sunny-leaderboard-badge";
+        skin.textContent = ar ? `زي: ${cosmeticName(row.equipped_skin, row.equipped_skin)}` : `Skin: ${cosmeticName(row.equipped_skin, row.equipped_skin)}`;
+        badges.append(skin);
+      }
+      if (row.equipped_pet) {
+        const pet = document.createElement("span");
+        pet.className = "sunny-leaderboard-badge";
+        pet.textContent = ar ? `حيوان: ${cosmeticName(row.equipped_pet, row.equipped_pet)}` : `Pet: ${cosmeticName(row.equipped_pet, row.equipped_pet)}`;
+        badges.append(pet);
+      }
+      card.append(rank, player, badges);
+      list.append(card);
+    }
+  };
+
+  const refreshLeaderboard = async () => {
+    const status = document.querySelector("[data-leaderboard-status]");
+    if (status instanceof HTMLElement) {
+      status.textContent = isArabic() ? "جاري تحميل المستكشفين…" : "Loading explorers…";
+    }
+    try {
+      const result = await api("/api/games/sunny-island/leaderboard");
+      leaderboardRows = Array.isArray(result.leaderboard) ? result.leaderboard : [];
+      renderLeaderboard();
+    } catch (error) {
+      leaderboardRows = [];
+      if (status instanceof HTMLElement) {
+        status.textContent = error instanceof Error ? error.message : "Leaderboard could not be loaded.";
+      }
+    }
+  };
+
+  const buyShopItem = async (item) => {
+    if (state.busy) return;
+    state.busy = true;
+    try {
+      const result = await api("/api/games/sunny-island/shop/buy", "POST", { item_key: item.key });
+      state.shop = result;
+      await refreshShop();
+      toast(`${item.name} purchased permanently!`, 2600);
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Purchase failed.", 2600);
+    } finally {
+      state.busy = false;
+    }
+  };
+
+  const equipShopItem = async (item) => {
+    if (state.busy) return;
+    const loadout = { ...state.shop.loadout };
+    if (item.category === "skins") loadout.skin = item.key;
+    if (item.category === "weapons") loadout.weapon = item.key;
+    if (item.category === "pets") loadout.pet = item.key;
+    if (item.category === "trails") loadout.trail = item.key;
+    state.busy = true;
+    try {
+      const result = await api("/api/games/sunny-island/loadout", "POST", loadout);
+      state.shop.loadout = result.loadout;
+      applyShopLoadout();
+      renderShop();
+      toast(`${item.name} equipped`, 2200);
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Loadout update failed.", 2600);
+    } finally {
+      state.busy = false;
+    }
+  };
+
   const loadState = async () => {
     try {
       const result = await api("/api/games/sunny-island/state");
@@ -639,6 +986,7 @@
       updateSession(result.state.adventure.active_session);
       renderProgress();
       renderMap();
+      await refreshShop().catch(() => {});
       await refreshWallet().catch(() => {
         state.earnedCoins = null;
         renderProgress();
@@ -867,6 +1215,8 @@
     } else if (item.type === "supply") {
       const drop = PICKUPS.find((pickup) => pickup.zone === "loot_canyon"
         && !state.progress.unlocked_collectibles.includes(pickup.id));
+      openCrate();
+      spawnLootDrop(SUPPLY_DROP.x, SUPPLY_DROP.y, Math.random() < .5 ? "medkit" : "shield");
       if (drop) {
         await pickUp(drop);
       } else {
@@ -905,6 +1255,25 @@
       state.beaconActivations.clear();
       state.defeatedGuardians.clear();
       state.guardianStates = {};
+      state.temporaryWeapons = new Set(["wand"]);
+      state.selectedWeapon = "wand";
+      state.hp = state.maxHp;
+      state.shield = state.maxShield;
+      for (const ownedWeapon of ["weapon_mp40", "weapon_ak47"]) {
+        if (state.shop.owned.includes(ownedWeapon)) {
+          const weaponId = ownedWeapon.replace("weapon_", "");
+          state.temporaryWeapons.add(weaponId);
+        }
+      }
+      document.querySelectorAll("[data-weapon]").forEach((button) => {
+        const weaponId = button.getAttribute("data-weapon") || "wand";
+        button.classList.toggle("is-active", weaponId === "wand");
+        if (button instanceof HTMLButtonElement) button.disabled = weaponId !== "wand";
+        if (weaponId !== "wand" && state.temporaryWeapons.has(weaponId)) button.disabled = false;
+      });
+      if (state.shop.loadout.weapon) {
+        switchWeapon(state.shop.loadout.weapon.replace("weapon_", ""));
+      }
       renderProgress();
       setStatus("Your three daily objectives are ready. Adventure on!");
       toast("Daily Adventure started!", 2500);
@@ -985,10 +1354,130 @@
     state.floatingTexts.push({ x, y, text, color, life: 1.15 });
   };
 
+  const renderCombatHud = () => renderProgress();
+
+  const applyPlayerDamage = (amount, sourceX) => {
+    const now = performance.now();
+    if (now < state.invulnerableUntil || state.knockedDownUntil > now) return false;
+    state.invulnerableUntil = now + 800;
+    let remaining = amount;
+    if (state.shield > 0) {
+      const shieldDamage = Math.min(state.shield, remaining);
+      state.shield -= shieldDamage;
+      remaining -= shieldDamage;
+      addFloatingText(state.position.x, state.position.y - 58, shieldDamage > 0 ? "SHIELD!" : "", "#82e8ef");
+    }
+    if (remaining > 0) {
+      state.hp = Math.max(0, state.hp - remaining);
+      addFloatingText(state.position.x, state.position.y - 76, `-${remaining}`, "#ff9bac");
+      playCombatTone("hurt");
+    }
+    const pushDir = Math.sign(state.position.x - sourceX) || 1;
+    state.position.x = Math.min(WORLD.width - 40, Math.max(40, state.position.x + pushDir * 28));
+    spawnBurst(state.position.x, state.position.y - 12, "#ff769d", 10);
+    renderCombatHud();
+    if (state.hp <= 0) knockDownPlayer();
+    return true;
+  };
+
+  const knockDownPlayer = () => {
+    const now = performance.now();
+    state.knockedDownUntil = now + 1500;
+    const banner = document.querySelector("[data-knockdown-banner]");
+    if (banner instanceof HTMLElement) {
+      banner.hidden = false;
+      banner.classList.add("is-active");
+    }
+    window.setTimeout(() => {
+      state.position = { zone: "neon_pier", ...ZONE_ENTRANCES.neon_pier };
+      state.hp = state.maxHp;
+      state.shield = state.maxShield;
+      state.invulnerableUntil = performance.now() + 1200;
+      state.knockedDownUntil = 0;
+      state.beamHits = 0;
+      renderMap();
+      renderCombatHud();
+      if (banner instanceof HTMLElement) {
+        banner.classList.remove("is-active");
+        banner.hidden = true;
+      }
+      toast("Respawned at Moonlit Stilt Bay · HP and Shield restored.", 2600);
+    }, 1500);
+  };
+
+  const healPlayer = (hpAmount = 0, shieldAmount = 0) => {
+    if (hpAmount > 0) {
+      const before = state.hp;
+      state.hp = Math.min(state.maxHp, state.hp + hpAmount);
+      addFloatingText(state.position.x, state.position.y - 62, `+${state.hp - before} HP`, "#91f0aa");
+    }
+    if (shieldAmount > 0) {
+      const before = state.shield;
+      state.shield = Math.min(state.maxShield, state.shield + shieldAmount);
+      addFloatingText(state.position.x, state.position.y - 82, `+${state.shield - before} Shield`, "#82e8ef");
+    }
+    playCombatTone("heal");
+    renderCombatHud();
+  };
+
+  const switchWeapon = (weaponId) => {
+    if (!state.temporaryWeapons.has(weaponId) || !WEAPONS[weaponId]) return false;
+    state.selectedWeapon = weaponId;
+    document.querySelectorAll("[data-weapon]").forEach((button) => {
+      button.classList.toggle("is-active", button.getAttribute("data-weapon") === weaponId);
+    });
+    toast(`${WEAPONS[weaponId].name} equipped`, 1800);
+    return true;
+  };
+
+  const unlockTemporaryWeapon = (weaponId) => {
+    if (!WEAPONS[weaponId] || weaponId === "wand") return;
+    state.temporaryWeapons.add(weaponId);
+    const button = document.querySelector(`[data-weapon="${weaponId}"]`);
+    if (button instanceof HTMLButtonElement) button.disabled = false;
+    switchWeapon(weaponId);
+  };
+
   const isSupplyDropActive = (now) => {
     const cycle = 52000;
     const activeWindow = 17000;
     return (now - state.startedAt) % cycle < activeWindow;
+  };
+
+  const ensureDrones = (zone) => {
+    if (zone === "neon_pier" || zone === "palm_grove") return;
+    const key = `${zone}-drone-a`;
+    if (state.drones.some((drone) => drone.id === key)) return;
+    const base = zone === "loot_canyon"
+      ? [{ x: 620, y: 620 }, { x: 1120, y: 760 }]
+      : [{ x: 760, y: 700 }, { x: 1180, y: 620 }];
+    for (let index = 0; index < base.length; index++) {
+      state.drones.push({
+        id: `${zone}-drone-${index}`,
+        zone,
+        x: base[index].x,
+        y: base[index].y,
+        originX: base[index].x,
+        originY: base[index].y,
+        hp: 3,
+        maxHp: 3,
+        phase: index * 1.7,
+        lastAttackAt: 0,
+      });
+    }
+  };
+
+  const spawnLootDrop = (x, y, forcedType = null) => {
+    const types = ["medkit", "shield", "weapon"];
+    const type = forcedType || types[Math.floor(Math.random() * types.length)];
+    state.lootDrops.push({ x, y, type, life: 18, phase: Math.random() * 6 });
+  };
+
+  const openCrate = () => {
+    const roll = Math.random() < .5 ? "mp40" : "ak47";
+    unlockTemporaryWeapon(roll);
+    healPlayer(30, 25);
+    playCombatTone("crate");
   };
 
   const drawRoundRect = (ctx, x, y, width, height, radius, fill, stroke = null) => {
@@ -1040,6 +1529,49 @@
     ctx.fillStyle = "#f3bc61";
     ctx.beginPath();
     ctx.arc(8, crownY + 6, 13, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  };
+
+  const updateAndDrawPet = (ctx, time, delta) => {
+    if (!state.shop.loadout.pet) return;
+    if (!state.petPosition) {
+      state.petPosition = { x: state.position.x - 70, y: state.position.y + 18 };
+    }
+    const targetX = state.position.x - 62 * (state.facing.x >= 0 ? 1 : -1);
+    const targetY = state.position.y + 24;
+    const follow = 1 - Math.pow(.001, delta);
+    state.petPosition.x += (targetX - state.petPosition.x) * follow;
+    state.petPosition.y += (targetY - state.petPosition.y) * follow;
+
+    const magnetRadius = 100;
+    for (const drop of state.lootDrops) {
+      if (Math.hypot(drop.x - state.petPosition.x, drop.y - state.petPosition.y) < magnetRadius) {
+        drop.x += (state.position.x - drop.x) * Math.min(1, delta * 3.2);
+        drop.y += (state.position.y - drop.y) * Math.min(1, delta * 3.2);
+      }
+    }
+
+    const cyber = state.shop.loadout.pet === "pet_snoop_cyber";
+    ctx.save();
+    ctx.translate(state.petPosition.x, state.petPosition.y);
+    ctx.scale(cyber ? 1 : .92, cyber ? 1 : .92);
+    ctx.fillStyle = cyber ? "#26284f" : "#6a4b3b";
+    ctx.strokeStyle = cyber ? "#72edf0" : "#3b2d29";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 19, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(-10, -13, 12, 0, Math.PI * 2);
+    ctx.arc(10, -13, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = cyber ? "#ff79c8" : "#9be7ef";
+    ctx.beginPath();
+    ctx.arc(-4, -14, 2, 0, Math.PI * 2);
+    ctx.arc(4, -14, 2, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   };
@@ -2348,10 +2880,11 @@
 
   const playCombatTone = (type) => {
     try {
+      if (state.muted) return;
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return;
-      if (!playCombatTone.ctx) playCombatTone.ctx = new AudioCtx();
-      const actx = playCombatTone.ctx;
+      if (!state.audioContext) state.audioContext = new AudioCtx();
+      const actx = state.audioContext;
       if (actx.state === "suspended") void actx.resume();
       const now = actx.currentTime;
       const osc = actx.createOscillator();
@@ -2384,6 +2917,22 @@
         gain.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
         osc.start(now);
         osc.stop(now + 0.44);
+      } else {
+        const profiles = {
+          shoot: [520, 180, .09],
+          hurt: [220, 90, .16],
+          heal: [360, 720, .28],
+          crate: [300, 600, .22],
+          boss: [180, 880, .48],
+        };
+        const profile = profiles[type] || [320, 160, .12];
+        osc.type = type === "boss" ? "sawtooth" : "triangle";
+        osc.frequency.setValueAtTime(profile[0], now);
+        osc.frequency.exponentialRampToValueAtTime(profile[1], now + profile[2]);
+        gain.gain.setValueAtTime(type === "boss" ? .13 : .08, now);
+        gain.gain.exponentialRampToValueAtTime(.001, now + profile[2]);
+        osc.start(now);
+        osc.stop(now + profile[2] + .02);
       }
     } catch {
       // Ignore audio errors if blocked by browser autoplay policy
@@ -2392,12 +2941,20 @@
 
   const fireWandBeam = () => {
     const now = performance.now();
-    if (now - state.lastBeamAt < 260) return;
+    const weapon = WEAPONS[state.selectedWeapon] || WEAPONS.wand;
+    if (now - state.lastBeamAt < weapon.cooldown) return;
     state.lastBeamAt = now;
 
     const look = AVATAR_LOOKS.find((item) => item.id === state.avatarId) || AVATAR_LOOKS[0];
-    const accent = look.accent || "#ff4fa3";
-    const trim = look.trim || "#f3b844";
+    const equippedSkin = state.shop.loadout.skin;
+    const skinPalettes = {
+      skin_neon_crown: { accent: "#65f4ff", trim: "#ff7bd5", jacket: "#243b66" },
+      skin_sakura_bloom: { accent: "#ffafd7", trim: "#fff0f7", jacket: "#673e67" },
+      skin_golden_empress: { accent: "#ffd56a", trim: "#fff1a8", jacket: "#76502f" },
+    };
+    const shopSkin = skinPalettes[equippedSkin];
+    const accent = shopSkin?.accent || look.accent || "#ff4fa3";
+    const trim = shopSkin?.trim || look.trim || "#f3b844";
 
     let dirX = state.facing.x || 1;
     let dirY = state.facing.y || 0;
@@ -2405,13 +2962,16 @@
     dirX /= len;
     dirY /= len;
 
-    // Gentle auto-aim assist toward active guardian in front of player
-    const candidates = activeGuardiansInZone(state.position.zone);
+    // Auto-aim toward the nearest guardian or drone in front of the player.
+    const candidates = [
+      ...activeGuardiansInZone(state.position.zone),
+      ...state.drones.filter((drone) => drone.zone === state.position.zone && drone.hp > 0),
+    ];
     let bestTarget = null;
-    let bestDist = 660;
-    for (const g of candidates) {
-      const dx = g.x - state.position.x;
-      const dy = (g.y - 32) - (state.position.y - 16);
+    let bestDist = weapon.range;
+    for (const target of candidates) {
+      const dx = target.x - state.position.x;
+      const dy = (target.y - 32) - (state.position.y - 16);
       const dist = Math.hypot(dx, dy);
       if (dist < bestDist && (dx * dirX + dy * dirY) / (dist || 1) > 0.35) {
         bestDist = dist;
@@ -2428,19 +2988,22 @@
 
     const startX = state.position.x + (dirX >= 0 ? 32 : -32);
     const startY = state.position.y - 18;
-    const speed = 790;
+    const speed = weapon.speed;
     state.beams.push({
       zone: state.position.zone,
       x: startX,
       y: startY,
       vx: dirX * speed,
       vy: dirY * speed,
-      life: 0.95,
-      color: accent,
-      trim,
+      life: weapon.life,
+      damage: weapon.damage,
+      knockback: weapon.knockback || 0,
+      weapon: state.selectedWeapon,
+      color: state.selectedWeapon === "wand" ? accent : weapon.color,
+      trim: state.selectedWeapon === "wand" ? trim : weapon.trim,
     });
     spawnBurst(startX, startY, trim, 6);
-    playCombatTone("beam");
+    playCombatTone(state.selectedWeapon === "wand" ? "beam" : "shoot");
   };
 
   const drawSingleGuardian = (ctx, guardian, time, now) => {
@@ -2586,6 +3149,70 @@
       drawSingleGuardian(ctx, guardian, time, now);
     }
 
+    for (const drone of state.drones) {
+      if (drone.zone !== zone || drone.hp <= 0) continue;
+      ctx.save();
+      ctx.translate(drone.x, drone.y);
+      ctx.rotate(time * 2 + drone.phase);
+      ctx.fillStyle = "#65dcdf";
+      ctx.strokeStyle = "#234d64";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, -20);
+      ctx.lineTo(20, 0);
+      ctx.lineTo(0, 20);
+      ctx.lineTo(-20, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+      drawRoundRect(ctx, drone.x - 20, drone.y - 34, 40 * (drone.hp / drone.maxHp), 5, 2, "#67e0cf");
+    }
+
+    for (const ring of state.shockTelegraphs) {
+      const remaining = Math.max(0, ring.until - now);
+      ctx.save();
+      ctx.translate(ring.x, ring.y);
+      ctx.strokeStyle = remaining > 0 ? "rgb(255 92 145 / 78%)" : "#ff5c91";
+      ctx.lineWidth = 5;
+      ctx.setLineDash([12, 8]);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, ring.radius, ring.radius * .55, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    for (const drop of state.lootDrops) {
+      if (drop.life <= 0) continue;
+      ctx.save();
+      ctx.translate(drop.x, drop.y + Math.sin(time * 5 + drop.phase) * 5);
+      if (drop.type === "medkit") {
+        drawRoundRect(ctx, -18, -18, 36, 36, 7, "#fff8ea", "#e85d78");
+        ctx.fillStyle = "#e85d78";
+        ctx.fillRect(-4, -12, 8, 24);
+        ctx.fillRect(-12, -4, 24, 8);
+      } else if (drop.type === "shield") {
+        ctx.fillStyle = "#71daf1";
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(0, -20);
+        ctx.lineTo(18, -10);
+        ctx.lineTo(14, 14);
+        ctx.lineTo(0, 22);
+        ctx.lineTo(-14, 14);
+        ctx.lineTo(-18, -10);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      } else {
+        const crate = imageFor("sun_crate");
+        if (crate?.complete && crate.naturalWidth) ctx.drawImage(crate, -28, -28, 56, 56);
+        else drawRoundRect(ctx, -24, -20, 48, 40, 6, "#e29c48", "#815938");
+      }
+      ctx.restore();
+    }
+
     // Draw Wand Starlight Beams
     for (const beam of state.beams) {
       if (beam.zone !== zone) continue;
@@ -2654,9 +3281,13 @@
 
   const updateCombat = (delta, now) => {
     const zone = state.position.zone;
+    ensureDrones(zone);
     const guardians = activeGuardiansInZone(zone);
+    const jumpProgress = state.jumpUntil > now ? 1 - (state.jumpUntil - now) / 560 : 0;
+    const jumpHeight = state.jumpUntil > now ? Math.sin(jumpProgress * Math.PI) * 52 : 0;
+    const dashActive = state.dashUntil > now;
 
-    // 1. Update Wand Beams & check hits on Guardians
+    // Player projectiles
     state.beams = state.beams.filter((beam) => beam.life > 0);
     for (const beam of state.beams) {
       beam.x += beam.vx * delta;
@@ -2667,65 +3298,121 @@
         continue;
       }
       if (beam.zone !== zone) continue;
+      let hit = false;
       for (const guardian of guardians) {
         const hitDist = Math.hypot(beam.x - guardian.x, beam.y - (guardian.y - 36));
         if (hitDist < 58) {
           beam.life = 0;
+          hit = true;
           const gState = getGuardianState(guardian);
-          gState.hp = Math.max(0, gState.hp - 1);
+          gState.hp = Math.max(0, gState.hp - (beam.damage || 1));
           gState.hitFlashUntil = now + 150;
+          if (beam.knockback) {
+            guardian.x = Math.min(WORLD.width - 40, Math.max(40, guardian.x + Math.sign(beam.vx) * beam.knockback));
+          }
           spawnBurst(beam.x, beam.y, "#ff85be", 16);
-          spawnBurst(beam.x, beam.y, "#ffe078", 10);
-
+          playCombatTone("hit");
+          addFloatingText(guardian.x, guardian.y - 82, `-${beam.damage || 1}`, "#ffd1e6");
           if (gState.hp <= 0) {
             state.defeatedGuardians.add(guardian.id);
-            playCombatTone("defeat");
-            spawnBurst(guardian.x, guardian.y - 36, "#ff4fa3", 32);
-            spawnBurst(guardian.x, guardian.y - 36, "#ffd866", 28);
-            addFloatingText(guardian.x, guardian.y - 75, "GUARDIAN DEFEATED! ★", "#fff5b8");
-            toast(isArabic() ? `تمت هزيمة الحارس وفتح البوابة!` : `${guardian.name} defeated! The portal is now open!`, 3400);
+            spawnLootDrop(guardian.x, guardian.y - 20);
+            playCombatTone(guardian.id === "guardian_ridge" ? "boss" : "defeat");
+            spawnBurst(guardian.x, guardian.y - 36, "#ff4fa3", guardian.id === "guardian_ridge" ? 48 : 32);
+            spawnBurst(guardian.x, guardian.y - 36, "#ffd866", guardian.id === "guardian_ridge" ? 42 : 28);
+            addFloatingText(guardian.x, guardian.y - 75, guardian.id === "guardian_ridge" ? "BOSS DEFEATED! ★" : "GUARDIAN DEFEATED! ★", "#fff5b8");
+            toast(`${guardian.name} defeated! The portal is now open!`, 3400);
             updateInteraction();
-          } else {
-            playCombatTone("hit");
-            addFloatingText(
-              guardian.x,
-              guardian.y - 82,
-              `-1 ★ (${gState.hp}/${guardian.maxHp})`,
-              "#ffd1e6"
-            );
           }
           break;
         }
       }
+      if (!hit) {
+        for (const drone of state.drones) {
+          if (drone.zone !== zone || drone.hp <= 0) continue;
+          if (Math.hypot(beam.x - drone.x, beam.y - drone.y) < 32) {
+            beam.life = 0;
+            drone.hp = Math.max(0, drone.hp - (beam.damage || 1));
+            spawnBurst(beam.x, beam.y, "#69dff4", 8);
+            playCombatTone("hit");
+            addFloatingText(drone.x, drone.y - 44, `-${beam.damage || 1}`, "#c9fbff");
+            if (drone.hp <= 0) spawnLootDrop(drone.x, drone.y);
+            break;
+          }
+        }
+      }
     }
 
-    // 2. Guardian Periodic Energy Wave Attack (dodgeable by Jump or Dash)
+    // Patrolling drones
+    for (const drone of state.drones) {
+      if (drone.zone !== zone || drone.hp <= 0) continue;
+      drone.phase += delta * 1.8;
+      drone.x = drone.originX + Math.sin(drone.phase) * 85;
+      drone.y = drone.originY + Math.cos(drone.phase * .7) * 32;
+      const dx = state.position.x - drone.x;
+      const dy = state.position.y - drone.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist < 360 && now - drone.lastAttackAt > 2200) {
+        drone.lastAttackAt = now;
+        const n = dist || 1;
+        state.enemyWaves.push({
+          zone,
+          x: drone.x,
+          y: drone.y,
+          vx: dx / n * 210,
+          vy: dy / n * 210,
+          life: 2.4,
+          damage: 10,
+          telegraphUntil: now + 620,
+        });
+      }
+    }
+
+    // Guardian attack patterns
     for (const guardian of guardians) {
       const gState = getGuardianState(guardian);
       const dx = state.position.x - guardian.x;
       const dy = state.position.y - guardian.y;
       const dist = Math.hypot(dx, dy);
-      if (dist < 480 && now - gState.lastAttackAt > 3100) {
+      if (dist < 480 && now - gState.lastAttackAt > (guardian.id === "guardian_ridge" ? 2500 : 3100)) {
         gState.lastAttackAt = now;
-        gState.chargeUntil = now + 380;
+        gState.chargeUntil = now + 620;
         const n = dist || 1;
-        state.enemyWaves.push({
-          zone,
-          x: guardian.x + (dx / n) * 34,
-          y: guardian.y - 10,
-          vx: (dx / n) * 265,
-          vy: (dy / n) * 265,
-          life: 2.2,
-        });
+        if (guardian.id === "guardian_ridge" && (gState.hp <= guardian.maxHp / 2 || Math.floor(now / 5000) % 2 === 0)) {
+          for (let ring = 0; ring < 12; ring++) {
+            const angle = ring * Math.PI * 2 / 12;
+            state.enemyWaves.push({
+              zone,
+              x: guardian.x,
+              y: guardian.y - 10,
+              vx: Math.cos(angle) * 230,
+              vy: Math.sin(angle) * 230,
+              life: 2.4,
+              damage: 15,
+            });
+          }
+          state.shockTelegraphs.push({ x: guardian.x, y: guardian.y - 10, radius: 260, until: now + 620 });
+        } else if (guardian.id === "guardian_ridge" && dist < 300) {
+          state.shockTelegraphs.push({ x: guardian.x, y: guardian.y - 10, radius: 190, until: now + 700 });
+          state.bossSlamUntil = now + 700;
+          state.bossSlamOrigin = { x: guardian.x, y: guardian.y - 10 };
+        } else {
+          state.enemyWaves.push({
+            zone,
+            x: guardian.x + dx / n * 34,
+            y: guardian.y - 10,
+            vx: dx / n * 265,
+            vy: dy / n * 265,
+            life: 2.2,
+            damage: 15,
+          });
+          state.shockTelegraphs.push({ x: guardian.x, y: guardian.y - 10, radius: 70, until: now + 620 });
+        }
       }
     }
 
     state.enemyWaves = state.enemyWaves.filter((wave) => wave.life > 0);
-    const jumpProgress = state.jumpUntil > now ? 1 - (state.jumpUntil - now) / 560 : 0;
-    const jumpHeight = state.jumpUntil > now ? Math.sin(jumpProgress * Math.PI) * 52 : 0;
-    const dashActive = state.dashUntil > now;
-
     for (const wave of state.enemyWaves) {
+      if (now < (wave.telegraphUntil || 0)) continue;
       wave.x += wave.vx * delta;
       wave.y += wave.vy * delta;
       wave.life -= delta;
@@ -2735,14 +3422,40 @@
         if (jumpHeight > 22 || dashActive) {
           wave.life = 0;
           addFloatingText(state.position.x, state.position.y - 54, "DODGED!", "#9ef6ff");
-        } else if (now > state.playerHitUntil) {
+        } else {
           wave.life = 0;
-          state.playerHitUntil = now + 900;
-          const pushDir = Math.sign(wave.vx) || -1;
-          state.position.x = Math.min(WORLD.width - 40, Math.max(40, state.position.x + pushDir * 36));
-          spawnBurst(state.position.x, state.position.y - 16, "#ff6b9d", 10);
-          addFloatingText(state.position.x, state.position.y - 52, "JUMP OR DASH!", "#ffc2d9");
+          applyPlayerDamage(wave.damage || 15, wave.x);
         }
+      }
+    }
+
+    state.shockTelegraphs = state.shockTelegraphs.filter((ring) => ring.until > now);
+    if (state.bossSlamUntil > 0) {
+      if (now >= state.bossSlamUntil - 180 && now >= state.bossSlamTriggeredAt) {
+        state.bossSlamTriggeredAt = now + 220;
+        if (state.bossSlamOrigin) {
+          const slamDist = Math.hypot(
+            state.position.x - state.bossSlamOrigin.x,
+            state.position.y - state.bossSlamOrigin.y,
+          );
+          if (slamDist < 190) applyPlayerDamage(20, state.bossSlamOrigin.x);
+        }
+      }
+      if (now >= state.bossSlamUntil) {
+        state.bossSlamUntil = 0;
+        state.bossSlamOrigin = null;
+        state.bossSlamTriggeredAt = 0;
+      }
+    }
+    state.lootDrops = state.lootDrops.filter((drop) => drop.life > 0);
+    for (const drop of state.lootDrops) {
+      drop.life -= delta;
+      if (Math.hypot(drop.x - state.position.x, drop.y - state.position.y) < 54) {
+        drop.life = 0;
+        if (drop.type === "medkit") healPlayer(30, 0);
+        else if (drop.type === "shield") healPlayer(0, 25);
+        else openCrate();
+        toast(drop.type === "weapon" ? "Supply crate opened · weapon acquired" : `${drop.type === "medkit" ? "Medkit" : "Shield"} collected`, 2200);
       }
     }
   };
@@ -3195,6 +3908,22 @@
 
     ctx.save();
     ctx.translate(x, y);
+    if (performance.now() < state.invulnerableUntil && Math.floor(performance.now() / 90) % 2 === 0) {
+      ctx.globalAlpha = .48;
+    }
+
+    if (shopSkin) {
+      ctx.save();
+      ctx.shadowColor = accent;
+      ctx.shadowBlur = 18;
+      ctx.strokeStyle = accent;
+      ctx.globalAlpha = .72;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(0, 26, 50, 20, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
 
     // Pulsing Neon Power Aura Ring on the ground under character
     const auraY = 27 + jumpHeight * 0.42;
@@ -3241,6 +3970,24 @@
     }
 
     if (dashActive) {
+      const trailColors = {
+        trail_neon_pink: "#ff78be",
+        trail_cyber_lightning: "#76efff",
+        trail_solar_gold: "#ffd86a",
+      };
+      const trailColor = trailColors[state.shop.loadout.trail];
+      if (trailColor) {
+        ctx.save();
+        ctx.strokeStyle = trailColor;
+        ctx.shadowColor = trailColor;
+        ctx.shadowBlur = 14;
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(-42, 18);
+        ctx.quadraticCurveTo(-65, 5, -92 - Math.sin(time * 12) * 8, 14);
+        ctx.stroke();
+        ctx.restore();
+      }
       for (let echo = 3; echo > 0; echo--) {
         ctx.save();
         ctx.globalAlpha = 0.14 + (4 - echo) * 0.045;
@@ -3314,6 +4061,7 @@
     drawWorldObjects(context, time);
     drawGuardiansAndBeams(context, time, now);
     drawCharacter(context, time, now);
+    updateAndDrawPet(context, time, delta);
     drawParticles(context, delta);
     context.restore();
 
@@ -3457,6 +4205,18 @@
       fireWandBeam();
       return;
     }
+    if (key === "1" && !event.repeat) {
+      switchWeapon("wand");
+      return;
+    }
+    if (key === "2" && !event.repeat) {
+      switchWeapon("mp40");
+      return;
+    }
+    if (key === "3" && !event.repeat) {
+      switchWeapon("ak47");
+      return;
+    }
     if (key === "c" && !event.repeat) {
       openCodex();
       return;
@@ -3485,6 +4245,8 @@
   bindPress(touchActionButton, () => void interact());
   bindPress(jumpButton, jump);
   bindPress(dashButton, dash);
+  const fireButton = document.querySelector("[data-fire-button]");
+  bindPress(fireButton, fireWandBeam);
   const beamHudButton = document.querySelector("[data-beam-button]");
   bindPress(beamHudButton, fireWandBeam);
   startButton.addEventListener("click", () => void startAdventure());
@@ -3494,6 +4256,58 @@
   const codexCloseButton = document.querySelector("[data-codex-close]");
   codexOpenButton?.addEventListener("click", openCodex);
   codexCloseButton?.addEventListener("click", () => codexDialog.close());
+  const shopOpenButton = document.querySelector("[data-shop-open]");
+  const shopCloseButton = document.querySelector("[data-shop-close]");
+  shopOpenButton?.addEventListener("click", () => {
+    if (!state.authenticated) {
+      toast("Sign in to open the Island Shop.", 2600);
+      return;
+    }
+    void refreshShop();
+    if (!shopDialog.open) shopDialog.showModal();
+  });
+  shopCloseButton?.addEventListener("click", () => shopDialog.close());
+  shopDialog.addEventListener("click", (event) => {
+    if (event.target === shopDialog) shopDialog.close();
+  });
+  const leaderboardOpenButton = document.querySelector("[data-leaderboard-open]");
+  const leaderboardCloseButton = document.querySelector("[data-leaderboard-close]");
+  leaderboardOpenButton?.addEventListener("click", () => {
+    void refreshLeaderboard();
+    if (!leaderboardDialog.open) leaderboardDialog.showModal();
+  });
+  leaderboardCloseButton?.addEventListener("click", () => leaderboardDialog.close());
+  leaderboardDialog.addEventListener("click", (event) => {
+    if (event.target === leaderboardDialog) leaderboardDialog.close();
+  });
+  document.querySelectorAll("[data-shop-tab]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.shopCategory = button.getAttribute("data-shop-tab") || "weapons";
+      document.querySelectorAll("[data-shop-tab]").forEach((tab) => {
+        tab.classList.toggle("is-active", tab === button);
+      });
+      renderShop();
+    });
+  });
+  const muteButton = document.querySelector("[data-mute-toggle]");
+  if (muteButton instanceof HTMLButtonElement) {
+    muteButton.textContent = state.muted ? "Sound Off" : "Sound On";
+    muteButton.setAttribute("aria-pressed", String(state.muted));
+    muteButton.addEventListener("click", () => {
+      state.muted = !state.muted;
+      try {
+        window.localStorage.setItem(MUTE_STORAGE_KEY, String(state.muted));
+      } catch {
+        // Preference remains active for this session if storage is unavailable.
+      }
+      muteButton.textContent = state.muted ? "Sound Off" : "Sound On";
+      muteButton.setAttribute("aria-pressed", String(state.muted));
+      if (!state.muted) playCombatTone("crate");
+    });
+  }
+  document.querySelectorAll("[data-weapon]").forEach((button) => {
+    button.addEventListener("click", () => switchWeapon(button.getAttribute("data-weapon") || "wand"));
+  });
   codexDialog.addEventListener("click", (event) => {
     if (event.target === codexDialog) codexDialog.close();
   });
@@ -3576,6 +4390,8 @@
   const langObserver = new MutationObserver(() => {
     renderProgress();
     renderMap();
+    renderShop();
+    renderLeaderboard();
   });
   langObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["lang", "dir"] });
   renderProgress();
