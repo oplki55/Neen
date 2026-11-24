@@ -15,8 +15,14 @@ if (!(canvas instanceof HTMLCanvasElement)) {
 const WORLD = { width: 160, depth: 100, scale: 10 };
 const GROUND_Y = 0.76;
 const PLAYER_COLLISION_RADIUS = 0.72;
-const CAMERA_FORWARD = new THREE.Vector3(0, 0, -1);
 const CAMERA_OFFSET = new THREE.Vector3(0, 6.3, 12.5);
+const CAMERA_DISTANCE = CAMERA_OFFSET.length();
+const DEFAULT_CAMERA_PITCH = Math.atan2(CAMERA_OFFSET.y, CAMERA_OFFSET.z);
+const CAMERA_PITCH_LIMITS = { min: 0.14, max: 1.12 };
+const CAMERA_DRAG_SENSITIVITY = 0.006;
+const CAMERA_PITCH_DRAG_SENSITIVITY = 0.004;
+const CAMERA_KEY_TURN_SPEED = 2.2;
+const CAMERA_KEY_HOLD_DELAY = 180;
 const ZONES = [
   { name: "Rim Nam Docks / Moonlit Bay", color: 0x78c850, x: 35, z: 77 },
   { name: "Peak Ruins / Crownleaf Manor", color: 0x6ab946, x: 58, z: 34 },
@@ -154,6 +160,10 @@ let lastFrame = 0;
 let activeZone = "";
 let activeZoneId = "neon_pier";
 let languageOverride = null;
+let cameraYaw = 0;
+let cameraPitch = DEFAULT_CAMERA_PITCH;
+let cameraPointer = null;
+let cameraTurnKeyStartedAt = 0;
 let messageTimer = 0;
 let supplyCrate = null;
 let lastSupplyAt = 0;
@@ -307,7 +317,7 @@ const TEXT = {
     codexClose: "Close Codex",
     leaderboardClose: "Close leaderboard",
     collectionEyebrow: "YOUR ISLAND COLLECTION",
-    controlHint: "WASD move · SPACE jump · SHIFT dash · CLICK / F fire · E action · 1–3 weapons",
+    controlHint: "WASD move · SPACE jump · SHIFT dash · CLICK / F fire · drag / Q or E hold to orbit · R recenter · E tap action · 1–3 weapons",
     jump: "Jump",
     dash: "Dash",
     fire: "Fire",
@@ -316,7 +326,7 @@ const TEXT = {
     siteTitle: "Sunny Island",
     backTo2d: "2D Island",
     returnLabel: "Return to Sunny Island",
-    canvasLabel: "Third-person 3D island. Use WASD to move, Space to jump, Shift to dash, and click to fire.",
+    canvasLabel: "Third-person 3D island. Use WASD or arrows to move; drag or swipe the right side, or hold Q/E, to orbit the camera; press R to recenter. Space jumps, Shift dashes, and click fires.",
     leaderboardEyebrow: "ISLAND ADVENTURE",
     codexEmpty: "Discover keepsakes while you explore.",
     discoveredCount: "discovered",
@@ -383,7 +393,7 @@ const TEXT = {
     codexClose: "إغلاق السجل",
     leaderboardClose: "إغلاق لوحة المتصدرين",
     collectionEyebrow: "مقتنيات جزيرتك",
-    controlHint: "WASD حركة · SPACE قفز · SHIFT اندفاع · CLICK / F إطلاق · E تفاعل · 1–3 أسلحة",
+    controlHint: "WASD حركة · SPACE قفز · SHIFT اندفاع · CLICK / F إطلاق · اسحب / Q أو اضغط E مطولاً لتدوير الكاميرا · R للتوسيط · E للتفاعل · 1–3 أسلحة",
     jump: "قفز",
     dash: "اندفاع",
     fire: "إطلاق",
@@ -392,7 +402,7 @@ const TEXT = {
     siteTitle: "جزيرة الشمس",
     backTo2d: "الجزيرة ثنائية الأبعاد",
     returnLabel: "العودة إلى جزيرة الشمس",
-    canvasLabel: "جزيرة ثلاثية الأبعاد بمنظور الشخص الثالث. استخدم WASD للحركة وSpace للقفز وShift للاندفاع وانقر لإطلاق النار.",
+    canvasLabel: "جزيرة ثلاثية الأبعاد بمنظور الشخص الثالث. استخدم WASD أو الأسهم للحركة؛ اسحب أو مرر على يمين الشاشة، أو اضغط Q أو E مطولاً، لتدوير الكاميرا، واضغط R لإعادتها. Space للقفز وShift للاندفاع والنقر لإطلاق النار.",
     leaderboardEyebrow: "مغامرة الجزيرة",
     codexEmpty: "اكتشف المقتنيات أثناء استكشافك.",
     discoveredCount: "مكتشف",
@@ -2015,6 +2025,32 @@ function dash() {
   playSound("dash");
 }
 
+function wrapCameraYaw(yaw) {
+  const fullTurn = Math.PI * 2;
+  return ((yaw % fullTurn) + fullTurn) % fullTurn;
+}
+
+function orbitCameraBy(deltaX, deltaY) {
+  cameraYaw = wrapCameraYaw(cameraYaw + deltaX * CAMERA_DRAG_SENSITIVITY);
+  cameraPitch = THREE.MathUtils.clamp(
+    cameraPitch + deltaY * CAMERA_PITCH_DRAG_SENSITIVITY,
+    CAMERA_PITCH_LIMITS.min,
+    CAMERA_PITCH_LIMITS.max,
+  );
+}
+
+function isCameraOrbitExcludedPoint(x, y) {
+  const controls = document.querySelectorAll(
+    ".hud-top, .player-status, .quest-hud, .weapon-picker, .interaction-prompt, .scene-message, .controls-hint, .joystick, .touch-buttons, button, a, input, select, textarea",
+  );
+  return [...controls].some((element) => {
+    const bounds = element.getBoundingClientRect();
+    return bounds.width > 0 && bounds.height > 0
+      && x >= bounds.left && x <= bounds.right
+      && y >= bounds.top && y <= bounds.bottom;
+  });
+}
+
 function bindControls() {
   window.addEventListener("keydown", (event) => {
     const key = event.key.toLowerCase();
@@ -2024,16 +2060,86 @@ function bindControls() {
     if (key === " ") jump();
     if (key === "shift") dash();
     if (key === "f") fire();
-    if (key === "e") void performAction();
+    if (key === "e") {
+      cameraTurnKeyStartedAt = performance.now();
+      if (gameState.interaction) void performAction();
+    }
+    if (key === "r") {
+      cameraYaw = 0;
+      cameraPitch = DEFAULT_CAMERA_PITCH;
+    }
     if (key === "1") selectWeapon("wand");
     if (key === "2") selectWeapon("mp40");
     if (key === "3") selectWeapon("ak47");
   });
-  window.addEventListener("keyup", (event) => keyState.delete(event.key.toLowerCase()));
-  window.addEventListener("blur", () => keyState.clear());
-  canvas.addEventListener("pointerdown", (event) => {
-    if (event.pointerType === "mouse" && event.button === 0) fire();
+  window.addEventListener("keyup", (event) => {
+    const key = event.key.toLowerCase();
+    keyState.delete(key);
+    if (key === "e") cameraTurnKeyStartedAt = 0;
   });
+  window.addEventListener("blur", () => {
+    keyState.clear();
+    cameraPointer = null;
+    cameraTurnKeyStartedAt = 0;
+  });
+  canvas.addEventListener("pointerdown", (event) => {
+    const isTouch = event.pointerType !== "mouse";
+    const canvasBounds = canvas.getBoundingClientRect();
+    const startsOnRightHalf = event.clientX >= canvasBounds.left + canvasBounds.width / 2;
+    const isOrbitButton = event.pointerType === "mouse" && (event.button === 1 || event.button === 2);
+    const canOrbitOnDrag = event.pointerType === "mouse"
+      ? event.button === 0
+      : startsOnRightHalf;
+    if ((!isOrbitButton && !canOrbitOnDrag)
+      || (isTouch && !startsOnRightHalf)
+      || isCameraOrbitExcludedPoint(event.clientX, event.clientY)) return;
+
+    if (isTouch || isOrbitButton) event.preventDefault();
+    cameraPointer = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      lastX: event.clientX,
+      lastY: event.clientY,
+      canOrbitOnDrag,
+      orbiting: isOrbitButton,
+      dragged: isOrbitButton,
+      shouldFire: event.pointerType === "mouse" && event.button === 0,
+    };
+    canvas.setPointerCapture(event.pointerId);
+  });
+  canvas.addEventListener("pointermove", (event) => {
+    if (!cameraPointer || event.pointerId !== cameraPointer.pointerId) return;
+    const deltaX = event.clientX - cameraPointer.lastX;
+    const deltaY = event.clientY - cameraPointer.lastY;
+    const totalDistance = Math.hypot(
+      event.clientX - cameraPointer.startX,
+      event.clientY - cameraPointer.startY,
+    );
+    if (!cameraPointer.orbiting && cameraPointer.canOrbitOnDrag && totalDistance > 6) {
+      cameraPointer.orbiting = true;
+      cameraPointer.dragged = true;
+    }
+    if (cameraPointer.orbiting) {
+      orbitCameraBy(deltaX, deltaY);
+      event.preventDefault();
+    }
+    cameraPointer.lastX = event.clientX;
+    cameraPointer.lastY = event.clientY;
+  });
+  const finishCameraPointer = (event, allowFire) => {
+    if (!cameraPointer || event.pointerId !== cameraPointer.pointerId) return;
+    const totalDistance = Math.hypot(
+      event.clientX - cameraPointer.startX,
+      event.clientY - cameraPointer.startY,
+    );
+    const shouldFire = allowFire && cameraPointer.shouldFire && !cameraPointer.dragged && totalDistance <= 6;
+    cameraPointer = null;
+    if (shouldFire) fire();
+  };
+  canvas.addEventListener("pointerup", (event) => finishCameraPointer(event, true));
+  canvas.addEventListener("pointercancel", (event) => finishCameraPointer(event, false));
+  canvas.addEventListener("contextmenu", (event) => event.preventDefault());
 
   document.querySelectorAll("[data-action]").forEach((button) => {
     const action = button.getAttribute("data-action");
@@ -2342,9 +2448,15 @@ function readMovement() {
     - Number(keyState.has("a") || keyState.has("arrowleft")) + touchInput.x;
   const vertical = Number(keyState.has("w") || keyState.has("arrowup"))
     - Number(keyState.has("s") || keyState.has("arrowdown")) - touchInput.z;
-  const cameraForward = CAMERA_FORWARD;
-  const cameraRight = new THREE.Vector3().crossVectors(cameraForward, new THREE.Vector3(0, 1, 0)).normalize();
-  const direction = cameraRight.multiplyScalar(horizontal).addScaledVector(cameraForward, vertical);
+  const forwardX = -Math.sin(cameraYaw);
+  const forwardZ = -Math.cos(cameraYaw);
+  const rightX = Math.cos(cameraYaw);
+  const rightZ = -Math.sin(cameraYaw);
+  const direction = new THREE.Vector3(
+    rightX * horizontal + forwardX * vertical,
+    0,
+    rightZ * horizontal + forwardZ * vertical,
+  );
   if (direction.lengthSq() > 1) direction.normalize();
   return direction;
 }
@@ -2424,6 +2536,9 @@ function updateAdventureButtonState() {
 
 function updatePlayer(delta) {
   const now = performance.now();
+  const eOrbitReady = keyState.has("e") && now - cameraTurnKeyStartedAt >= CAMERA_KEY_HOLD_DELAY;
+  const cameraTurn = Number(eOrbitReady) - Number(keyState.has("q"));
+  cameraYaw = wrapCameraYaw(cameraYaw + cameraTurn * CAMERA_KEY_TURN_SPEED * delta);
   if (gameState.knockedDownUntil && now >= gameState.knockedDownUntil) {
     gameState.knockedDownUntil = 0;
     gameState.hp = gameState.maxHp;
@@ -2532,7 +2647,12 @@ function updatePlayer(delta) {
     updateHud();
   }
 
-  const cameraTarget = player.position.clone().add(CAMERA_OFFSET);
+  const horizontalDistance = CAMERA_DISTANCE * Math.cos(cameraPitch);
+  const cameraTarget = player.position.clone().add(new THREE.Vector3(
+    Math.sin(cameraYaw) * horizontalDistance,
+    Math.sin(cameraPitch) * CAMERA_DISTANCE,
+    Math.cos(cameraYaw) * horizontalDistance,
+  ));
   const smoothing = 1 - Math.exp(-5.4 * delta);
   camera.position.lerp(cameraTarget, smoothing);
   camera.lookAt(player.position.x, player.position.y + 1.7, player.position.z);
@@ -2781,7 +2901,12 @@ function init() {
   buildClockTower();
   const enemyLoads = buildInteractiveWorld();
   player = makeCharacter();
-  camera.position.copy(player.position).add(CAMERA_OFFSET);
+  const horizontalDistance = CAMERA_DISTANCE * Math.cos(cameraPitch);
+  camera.position.copy(player.position).add(new THREE.Vector3(
+    Math.sin(cameraYaw) * horizontalDistance,
+    Math.sin(cameraPitch) * CAMERA_DISTANCE,
+    Math.cos(cameraYaw) * horizontalDistance,
+  ));
   camera.lookAt(player.position.x, player.position.y + 1.7, player.position.z);
   localizeStaticLabels();
   bindControls();
