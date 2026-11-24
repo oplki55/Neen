@@ -15,6 +15,8 @@ if (!(canvas instanceof HTMLCanvasElement)) {
 const WORLD = { width: 160, depth: 100, scale: 10 };
 const GROUND_Y = 0.76;
 const PLAYER_COLLISION_RADIUS = 0.72;
+const CAMERA_FORWARD = new THREE.Vector3(0, 0, -1);
+const CAMERA_OFFSET = new THREE.Vector3(0, 6.3, 12.5);
 const ZONES = [
   { name: "Rim Nam Docks / Moonlit Bay", color: 0x41c5c6, x: 35, z: 77 },
   { name: "Peak Ruins / Crownleaf Manor", color: 0x7aaa68, x: 58, z: 34 },
@@ -31,7 +33,7 @@ const NATURE_LAYOUT = {
   ],
   bushes: [
     [42, 27], [42, 40], [50, 47], [58, 48],
-    [66, 47], [74, 40], [74, 27],
+    [66, 47], [82, 34], [74, 27],
   ],
 };
 const PICKUPS = [
@@ -645,14 +647,14 @@ function buildZonePlatforms() {
 
   addPath({ x: 35, z: 77 }, { x: 58, z: 34 }, 4.2, mats.path);
   addPath({ x: 58, z: 34 }, { x: 118, z: 72 }, 4.5, mats.path);
-  addPath({ x: 118, z: 72 }, { x: 123, z: 27 }, 4.2, mats.path);
+  addPath({ x: 118, z: 72 }, { x: 123, z: 42 }, 4.2, mats.path);
   addPath({ x: 35, z: 77 }, { x: 18, z: 86 }, 3.2, mats.wood);
 }
 
 function buildBayLandmark() {
   addPath({ x: 35, z: 77 }, { x: 35, z: 88 }, 3.6, mats.wood);
   addPath({ x: 18, z: 88 }, { x: 47, z: 88 }, 4.2, mats.paleWood);
-  for (const x of [19, 28, 37, 46]) {
+  for (const x of [20, 28, 37, 46]) {
     const piling = addMesh(scene, new THREE.CylinderGeometry(0.13, 0.18, 1.7, 6), mats.wood, [x, 0.1, 86.6]);
     piling.position.y = -0.03;
     addWorldCollider(x, 86.6, 0.42);
@@ -681,19 +683,19 @@ function buildManorLandmark() {
 }
 
 function buildFactoryLandmark() {
-  for (const [x, z, width, depth] of [[103, 70, 12, 10], [138, 55, 12, 10], [139, 88, 10, 8]]) {
+  for (const [x, z, width, depth] of [[103, 70, 12, 10], [138, 55, 12, 10], [91, 84, 10, 8]]) {
     addWorldCollider(x, z, Math.max(width, depth) * 0.48);
     box(scene, [width, 5.2, depth], [x, 2.9, z], mats.darkStone);
     box(scene, [width + 1, 1.1, depth + 1], [x, 6.05, z], mats.roof);
   }
-  for (const [x, z] of [[97, 63], [145, 49], [143, 84]]) {
+  for (const [x, z] of [[97, 63], [147, 45], [120, 87]]) {
     box(scene, [2.6, 7, 2.6], [x, 3.8, z], mats.darkStone);
     addMesh(scene, new THREE.CylinderGeometry(1.1, 1.35, 0.65, 8), mats.dark, [x, 7.65, z]);
     addWorldCollider(x, z, 1.4);
   }
 
   const crateColors = [mats.wood, mats.paleWood, mats.red];
-  [[109, 57], [109, 65], [136, 57], [136, 65], [136, 73]].forEach(([x, z], index) => {
+  [[109, 57], [114, 54], [111, 48], [136, 65], [136, 73]].forEach(([x, z], index) => {
     box(scene, [4.6, 3.2, 3.6], [x, 2.1, z], crateColors[index % crateColors.length]);
     box(scene, [4.7, 0.18, 0.18], [x, 2.1, z - 1.85], mats.cream);
     addWorldCollider(x, z, 2.45);
@@ -2272,13 +2274,7 @@ function readMovement() {
     - Number(keyState.has("a") || keyState.has("arrowleft")) + touchInput.x;
   const vertical = Number(keyState.has("w") || keyState.has("arrowup"))
     - Number(keyState.has("s") || keyState.has("arrowdown")) - touchInput.z;
-  const cameraForward = new THREE.Vector3(
-    playerState.x - camera.position.x,
-    0,
-    playerState.z - camera.position.z,
-  );
-  if (cameraForward.lengthSq() < 0.0001) cameraForward.copy(playerState.direction).setY(0);
-  cameraForward.normalize();
+  const cameraForward = CAMERA_FORWARD;
   const cameraRight = new THREE.Vector3().crossVectors(cameraForward, new THREE.Vector3(0, 1, 0)).normalize();
   const direction = cameraRight.multiplyScalar(horizontal).addScaledVector(cameraForward, vertical);
   if (direction.lengthSq() > 1) direction.normalize();
@@ -2468,12 +2464,7 @@ function updatePlayer(delta) {
     updateHud();
   }
 
-  const cameraOffset = playerState.direction.clone().multiplyScalar(-12.5);
-  const cameraTarget = new THREE.Vector3(
-    player.position.x + cameraOffset.x,
-    player.position.y + 6.3,
-    player.position.z + cameraOffset.z,
-  );
+  const cameraTarget = player.position.clone().add(CAMERA_OFFSET);
   const smoothing = 1 - Math.exp(-5.4 * delta);
   camera.position.lerp(cameraTarget, smoothing);
   camera.lookAt(player.position.x, player.position.y + 1.7, player.position.z);
@@ -2722,11 +2713,7 @@ function init() {
   buildClockTower();
   const enemyLoads = buildInteractiveWorld();
   player = makeCharacter();
-  camera.position.set(
-    playerState.x - playerState.direction.x * 12.5,
-    player.position.y + 6.3,
-    playerState.z - playerState.direction.z * 12.5,
-  );
+  camera.position.copy(player.position).add(CAMERA_OFFSET);
   camera.lookAt(player.position.x, player.position.y + 1.7, player.position.z);
   localizeStaticLabels();
   bindControls();
