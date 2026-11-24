@@ -2091,8 +2091,7 @@ function bindControls() {
       ? event.button === 0
       : startsOnRightHalf;
     if ((!isOrbitButton && !canOrbitOnDrag)
-      || (isTouch && !startsOnRightHalf)
-      || isCameraOrbitExcludedPoint(event.clientX, event.clientY)) return;
+      || (isTouch && (!startsOnRightHalf || isCameraOrbitExcludedPoint(event.clientX, event.clientY)))) return;
 
     if (isTouch || isOrbitButton) event.preventDefault();
     cameraPointer = {
@@ -2648,13 +2647,11 @@ function updatePlayer(delta) {
   }
 
   const horizontalDistance = CAMERA_DISTANCE * Math.cos(cameraPitch);
-  const cameraTarget = player.position.clone().add(new THREE.Vector3(
-    Math.sin(cameraYaw) * horizontalDistance,
-    Math.sin(cameraPitch) * CAMERA_DISTANCE,
-    Math.cos(cameraYaw) * horizontalDistance,
-  ));
-  const smoothing = 1 - Math.exp(-5.4 * delta);
-  camera.position.lerp(cameraTarget, smoothing);
+  camera.position.set(
+    player.position.x + Math.sin(cameraYaw) * horizontalDistance,
+    player.position.y + Math.sin(cameraPitch) * CAMERA_DISTANCE,
+    player.position.z + Math.cos(cameraYaw) * horizontalDistance,
+  );
   camera.lookAt(player.position.x, player.position.y + 1.7, player.position.z);
 
   const x = Math.round(playerState.x * WORLD.scale).toString().padStart(4, "0");
