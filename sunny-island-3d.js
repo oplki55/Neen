@@ -24,6 +24,16 @@ const ZONES = [
 const ZONE_ORDER = ["neon_pier", "palm_grove", "loot_canyon", "sunset_ridge"];
 const ZONE_TITLES = Object.fromEntries(ZONE_ORDER.map((id, index) => [id, ZONES[index].name]));
 const ZONE_CENTERS = Object.fromEntries(ZONE_ORDER.map((id, index) => [id, { x: ZONES[index].x, z: ZONES[index].z }]));
+const NATURE_LAYOUT = {
+  palms: [
+    [17, 65], [17, 78], [22, 89],
+    [43, 19], [73, 18],
+  ],
+  bushes: [
+    [42, 27], [42, 40], [50, 47], [58, 48],
+    [66, 47], [74, 40], [74, 27],
+  ],
+};
 const PICKUPS = [
   { id: "snoop_badge", zone: "neon_pier", x: 31, z: 72 },
   { id: "sunset_sticker", zone: "neon_pier", x: 45, z: 64 },
@@ -640,79 +650,67 @@ function buildZonePlatforms() {
 }
 
 function buildBayLandmark() {
-  const dock = new THREE.Group();
-  scene.add(dock);
-  for (let i = 0; i < 8; i += 1) {
-    box(dock, [3.3, 0.28, 1.8], [14 - i * 1.7, 0.69, 84.4], i % 2 ? mats.wood : mats.paleWood);
-  }
-  for (const x of [7.6, 16.8, 24.7]) {
-    const piling = addMesh(dock, new THREE.CylinderGeometry(0.13, 0.18, 1.7, 6), mats.wood, [x, 0.1, 84.4]);
+  addPath({ x: 35, z: 77 }, { x: 35, z: 88 }, 3.6, mats.wood);
+  addPath({ x: 18, z: 88 }, { x: 47, z: 88 }, 4.2, mats.paleWood);
+  for (const x of [19, 28, 37, 46]) {
+    const piling = addMesh(scene, new THREE.CylinderGeometry(0.13, 0.18, 1.7, 6), mats.wood, [x, 0.1, 86.6]);
     piling.position.y = -0.03;
-    addWorldCollider(x, 84.4, 0.42);
+    addWorldCollider(x, 86.6, 0.42);
   }
-
-  const hutX = 28;
-  const hutZ = 75;
-  addWorldCollider(hutX, hutZ, 4.45);
-  box(scene, [7, 3.8, 6], [hutX, 2.1, hutZ], mats.cream);
-  const roof = addMesh(scene, new THREE.ConeGeometry(5.1, 3.2, 4), mats.roof, [hutX, 5.55, hutZ]);
-  roof.rotation.y = Math.PI / 4;
-  box(scene, [1.1, 2.3, 0.12], [hutX, 1.6, hutZ - 3.08], mats.wood);
-  box(scene, [1.4, 1.05, 0.16], [hutX - 2, 2.5, hutZ - 3.12], mats.blue);
+  for (const [x, z] of [[29, 91], [36, 91], [43, 91]]) {
+    box(scene, [1.7, 1.5, 1.7], [x, 1.3, z], mats.wood);
+    box(scene, [1.78, 0.15, 0.18], [x, 1.3, z - 0.87], mats.paleWood);
+    addWorldCollider(x, z, 1.05);
+  }
 }
 
 function buildManorLandmark() {
   const x = 58;
-  const z = 34;
+  const archZ = 17;
   for (const offset of [-8, 0, 8]) {
-    const column = addMesh(scene, new THREE.CylinderGeometry(0.7, 0.9, 6, 8), mats.stone, [x + offset, 3.8, z - 2]);
-    column.rotation.z = offset === 8 ? 0.035 : 0;
-    addWorldCollider(x + offset, z - 2, 1.1);
+    addMesh(scene, new THREE.CylinderGeometry(0.7, 0.9, 6, 8), mats.stone, [x + offset, 3.8, archZ]);
+    addWorldCollider(x + offset, archZ, 1.1);
   }
-  box(scene, [18, 1.05, 4.3], [x, 7, z - 2], mats.stone);
-  box(scene, [2.4, 5.4, 1], [x - 11, 3.3, z + 6], mats.darkStone);
-  box(scene, [2.4, 5.4, 1], [x + 11, 3.3, z + 6], mats.stone);
-  addWorldCollider(x - 11, z + 6, 1.4);
-  addWorldCollider(x + 11, z + 6, 1.4);
-  for (const wallX of [x - 6, x, x + 6]) addWorldCollider(wallX, z + 6, 1.45);
-  box(scene, [24, 0.85, 1.2], [x, 6.1, z + 6], mats.stone);
-  const top = addMesh(scene, new THREE.ConeGeometry(4.5, 4, 4), mats.roof, [x + 14, 8, z + 6]);
+  box(scene, [18, 1.05, 1.5], [x, 7, archZ], mats.stone);
+  box(scene, [2.4, 4.4, 1], [x - 17, 2.8, 45], mats.darkStone);
+  box(scene, [2.4, 4.4, 1], [x + 17, 2.8, 45], mats.stone);
+  addWorldCollider(x - 17, 45, 1.4);
+  addWorldCollider(x + 17, 45, 1.4);
+  const top = addMesh(scene, new THREE.ConeGeometry(3.2, 3.3, 4), mats.roof, [x + 18, 6.5, archZ]);
   top.rotation.y = Math.PI / 4;
 }
 
 function buildFactoryLandmark() {
-  const x = 118;
-  const z = 72;
-  addWorldCollider(x - 8, z - 6, 7.3);
-  box(scene, [12, 4.5, 9], [x - 8, 2.6, z - 6], mats.darkStone);
-  box(scene, [13, 1.2, 10], [x - 8, 5.25, z - 6], mats.roof);
-  box(scene, [3, 7, 3], [x - 14, 4, z - 11], mats.darkStone);
-  const smoke = new THREE.Mesh(
-    new THREE.CylinderGeometry(1.2, 1.5, 0.65, 8),
-    mats.dark,
-  );
-  smoke.position.set(x - 14, 7.85, z - 11);
-  scene.add(smoke);
+  for (const [x, z, width, depth] of [[103, 70, 12, 10], [138, 55, 12, 10], [139, 88, 10, 8]]) {
+    addWorldCollider(x, z, Math.max(width, depth) * 0.48);
+    box(scene, [width, 5.2, depth], [x, 2.9, z], mats.darkStone);
+    box(scene, [width + 1, 1.1, depth + 1], [x, 6.05, z], mats.roof);
+  }
+  for (const [x, z] of [[97, 63], [145, 49], [143, 84]]) {
+    box(scene, [2.6, 7, 2.6], [x, 3.8, z], mats.darkStone);
+    addMesh(scene, new THREE.CylinderGeometry(1.1, 1.35, 0.65, 8), mats.dark, [x, 7.65, z]);
+    addWorldCollider(x, z, 1.4);
+  }
 
   const crateColors = [mats.wood, mats.paleWood, mats.red];
-  for (let row = 0; row < 2; row += 1) {
-    for (let col = 0; col < 3; col += 1) {
-      const crate = box(
-        scene,
-        [3.3, 3.1, 3.2],
-        [x + 4 + col * 4, 2.1 + row * 3.1, z + 4],
-        crateColors[(row + col) % crateColors.length],
-      );
-      crate.rotation.y = (col - row) * 0.07;
-      addWorldCollider(x + 4 + col * 4, z + 4, 1.85);
-      box(scene, [3.4, 0.18, 0.18], [x + 4 + col * 4, 2.1 + row * 3.1, z + 2.35], mats.cream);
-    }
-  }
+  [[109, 57], [109, 65], [136, 57], [136, 65], [136, 73]].forEach(([x, z], index) => {
+    box(scene, [4.6, 3.2, 3.6], [x, 2.1, z], crateColors[index % crateColors.length]);
+    box(scene, [4.7, 0.18, 0.18], [x, 2.1, z - 1.85], mats.cream);
+    addWorldCollider(x, z, 2.45);
+  });
 }
 
 function buildClockTower() {
-  const x = 133;
-  const z = 24;
+  const x = 123;
+  const z = 27;
+  const plaza = new THREE.Mesh(
+    new THREE.CylinderGeometry(15, 15, 0.2, 48),
+    mats.path,
+  );
+  plaza.position.set(x, 0.58, z);
+  scene.add(plaza);
+  const arenaRing = addMesh(scene, new THREE.TorusGeometry(15.5, 0.28, 6, 56), mats.gold, [x, 0.76, z]);
+  arenaRing.rotation.x = Math.PI / 2;
   addWorldCollider(x, z, 5.4);
   addMesh(scene, new THREE.CylinderGeometry(5, 6.4, 1.2, 8), mats.darkStone, [x, 1.45, z]);
   addMesh(scene, new THREE.CylinderGeometry(3.9, 4.6, 10, 8), mats.stone, [x, 6.8, z]);
@@ -727,13 +725,11 @@ function buildClockTower() {
   box(scene, [0.18, 1.6, 0.12], [x, 7.8, z - 4.38], mats.dark);
   box(scene, [1.1, 0.18, 0.12], [x + 0.45, 7.05, z - 4.38], mats.dark);
 
-  for (const offset of [-2.7, 2.7]) {
-    const bell = addMesh(scene, new THREE.SphereGeometry(0.65, 10, 8), mats.gold, [x + offset, 1.45, z + 5]);
-    bell.scale.y = 0.78;
+  for (const [pillarX, pillarZ] of [[109, 13], [137, 13], [109, 41], [137, 41]]) {
+    addMesh(scene, new THREE.CylinderGeometry(0.65, 0.85, 5.2, 8), mats.stone, [pillarX, 3.1, pillarZ]);
+    addMesh(scene, new THREE.SphereGeometry(0.55, 10, 8), mats.gold, [pillarX, 5.9, pillarZ]);
+    addWorldCollider(pillarX, pillarZ, 0.95);
   }
-  const flag = box(scene, [0.14, 4.2, 0.14], [x + 5, 3, z + 4], mats.gold);
-  flag.rotation.z = 0.06;
-  box(scene, [2.2, 1.2, 0.15], [x + 6, 4.2, z + 4], mats.red);
 }
 
 function createProceduralTree(position, variant = 0) {
@@ -985,6 +981,7 @@ async function loadPlayerAvatar() {
     const avatarRoot = new THREE.Group();
     model.scale.multiplyScalar(scale);
     model.position.set(-center.x * scale, -bounds.min.y * scale, -center.z * scale);
+    avatarRoot.rotation.y = Math.PI;
     avatarRoot.add(model);
     player.add(avatarRoot);
     player.userData.avatarModel = avatarRoot;
@@ -1883,6 +1880,10 @@ function createProjectile() {
   const direction = target
     ? new THREE.Vector3(target.root.position.x - player.position.x, target.root.position.y + 2.3 - (player.position.y + 2.5), target.root.position.z - player.position.z).normalize()
     : playerState.direction.clone().setY(0.04).normalize();
+  if (target) {
+    const aimDirection = new THREE.Vector3(direction.x, 0, direction.z);
+    if (aimDirection.lengthSq() > 0.0001) playerState.direction.copy(aimDirection.normalize());
+  }
   player.updateMatrixWorld(true);
   const origin = player.localToWorld(new THREE.Vector3(0.84, 2.48, -0.8));
   const projectileMaterial = new THREE.MeshBasicMaterial({ color: stats.color, toneMapped: false });
@@ -2002,15 +2003,19 @@ function bindControls() {
     joystick.addEventListener("pointercancel", resetJoystick);
     function updateJoystick(event) {
       const bounds = joystick.getBoundingClientRect();
-      const radius = bounds.width * 0.34;
+      const radius = bounds.width * 0.38;
       const dx = event.clientX - (bounds.left + bounds.width / 2);
       const dy = event.clientY - (bounds.top + bounds.height / 2);
       const distance = Math.min(radius, Math.hypot(dx, dy));
       const angle = Math.atan2(dy, dx);
       const x = Math.cos(angle) * distance;
       const y = Math.sin(angle) * distance;
-      touchInput.x = x / radius;
-      touchInput.z = y / radius;
+      const deadzone = radius * 0.12;
+      const strength = distance <= deadzone
+        ? 0
+        : Math.pow((distance - deadzone) / (radius - deadzone), 1.35);
+      touchInput.x = Math.cos(angle) * strength;
+      touchInput.z = Math.sin(angle) * strength;
       joystickKnob.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
     }
   }
@@ -2374,7 +2379,7 @@ function updatePlayer(delta) {
 
   const move = readMovement();
   const knockedDown = now < gameState.knockedDownUntil;
-  if (!knockedDown && move.lengthSq() > 0.01) {
+  if (!knockedDown && move.lengthSq() > 0.000001) {
     playerState.direction.copy(move).normalize();
     const speed = playerState.dashTime > 0 ? 31 : 11;
     movePlayerWithCollisions(move.x * speed * delta, move.z * speed * delta);
@@ -2391,7 +2396,7 @@ function updatePlayer(delta) {
   }
 
   player.position.set(playerState.x, GROUND_Y + playerState.jumpOffset, playerState.z);
-  const targetRotation = Math.atan2(playerState.direction.x, -playerState.direction.z);
+  const targetRotation = Math.atan2(-playerState.direction.x, -playerState.direction.z);
   const rotationDelta = Math.atan2(
     Math.sin(targetRotation - player.rotation.y),
     Math.cos(targetRotation - player.rotation.y),
@@ -2401,7 +2406,7 @@ function updatePlayer(delta) {
   weapon.rotation.z = Math.sin(now * 0.002) * 0.045;
   player.visible = now >= gameState.invulnerableUntil || Math.floor(now / 90) % 2 === 0;
 
-  const moving = !knockedDown && move.lengthSq() > 0.01;
+  const moving = !knockedDown && move.lengthSq() > 0.000001;
   if (playerMixer) {
     if (playerState.jumpOffset > 0.05 && playerActions.jump) {
       playPlayerAnimation("jump", 0.08);
@@ -2655,27 +2660,16 @@ function render(time) {
   frameHandle = window.requestAnimationFrame(render);
 }
 
-function addNatureFallback() {
-  const treeLocations = [
-    [19, 62], [44, 59], [45, 87], [70, 42], [43, 26], [72, 24],
-    [97, 60], [141, 65], [102, 83], [139, 86], [104, 17], [146, 34],
-  ];
-  treeLocations.forEach((position, index) => createProceduralTree(position, index));
-  [
-    [26, 68], [45, 83], [69, 37], [89, 61], [143, 78], [110, 30], [141, 18],
-  ].forEach((position, index) => createProceduralBush(position, index));
-}
-
 async function loadIslandAssets(enemyLoads) {
   const assetPlan = [
     {
       path: "./assets/sunny-3d/models/palm-trees.glb",
-      positions: [[17, 68], [47, 87], [67, 58], [45, 23], [72, 28], [99, 65], [140, 80], [145, 33]],
+      positions: NATURE_LAYOUT.palms,
       height: 7.2,
     },
     {
       path: "./assets/sunny-3d/models/bushes.glb",
-      positions: [[26, 68], [44, 84], [69, 39], [91, 61], [143, 78], [107, 31], [141, 18]],
+      positions: NATURE_LAYOUT.bushes,
       height: 2.2,
     },
   ];
@@ -2700,7 +2694,8 @@ async function loadIslandAssets(enemyLoads) {
     Promise.all(enemyLoads),
   ]);
   if (natureResults.some((loaded) => !loaded)) {
-    addNatureFallback();
+    if (!natureResults[0]) NATURE_LAYOUT.palms.forEach((position, index) => createProceduralTree(position, index));
+    if (!natureResults[1]) NATURE_LAYOUT.bushes.forEach((position, index) => createProceduralBush(position, index));
     showMessage("Some nature models were unavailable; the island is using built-in 3D props.", 4000);
   }
   if (message.textContent === "Loading the island…") message.textContent = "";
