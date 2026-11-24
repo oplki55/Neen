@@ -1,0 +1,3 @@
+# Keep source archives local; they are not part of project releases.
+*.zip
+/assets/sunny-3d/*.zip

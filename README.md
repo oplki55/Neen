@@ -10,6 +10,7 @@ A responsive, multi-page Free Fire creator website built with the project's exis
 - `picture-jigsaw.html` — Account-backed 3 × 3 Picture Jigsaw using all three original images in `assets/Picture Jigsaw pic/`; image choice, piece swaps, and completion are validated and saved by the PHP API.
 - `target-rush.html` and `loot-sequence.html` — Server-validated daily games with private server-generated state, free Cairo-day starts, and Earned Coins credited only after verified wins. Target Rush uses the four approved screen images, a 30-second round, and server-verified target hits, score, and reward.
 - `sunny-island.html` — A responsive 2D cartoon adventure with four explorable zones, touch/keyboard movement, permanent collectibles and Codex, and server-validated daily objectives, XP, and Earned Coins.
+- `sunny-island-3d.html` — A standalone Three.js third-person Sunny Island game with local animated GLB models, server-backed adventures and shop, combat, and keyboard/touch controls; it does not replace the 2D game.
 - `videos.html` — Five TikTok player embeds, each lazy-loaded and paired with its existing direct-video link as a fallback.
 - `about.html` — Creator introduction using only the description and account already present in the project.
 - `gallery.html` — Eighteen original character images in a varied, uncropped layout with keyboard and touch navigation in the lightbox.
