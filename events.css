@@ -1379,6 +1379,15 @@
   filter: drop-shadow(0 10px 12px rgb(69 52 74 / 17%));
 }
 
+.challenge-hub-art--winter {
+  background:
+    radial-gradient(ellipse at 50% 70%, rgb(91 171 199 / 38%), transparent 65%),
+    linear-gradient(145deg, #f3fcff, #dceff5);
+  color: #438fa8;
+  font-size: 88px;
+  text-shadow: 0 8px 20px rgb(60 131 156 / 24%);
+}
+
 @media (max-width: 700px) {
   .challenge-hub-card {
     min-height: 0;
