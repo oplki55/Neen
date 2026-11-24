@@ -18,22 +18,22 @@ const PLAYER_COLLISION_RADIUS = 0.72;
 const CAMERA_FORWARD = new THREE.Vector3(0, 0, -1);
 const CAMERA_OFFSET = new THREE.Vector3(0, 6.3, 12.5);
 const ZONES = [
-  { name: "Rim Nam Docks / Moonlit Bay", color: 0x41c5c6, x: 35, z: 77 },
-  { name: "Peak Ruins / Crownleaf Manor", color: 0x7aaa68, x: 58, z: 34 },
-  { name: "Factory / Skycrate Foundry", color: 0xe7a259, x: 118, z: 72 },
-  { name: "Clock Tower Summit / Solstice Bellspire", color: 0xe78177, x: 123, z: 27 },
+  { name: "Rim Nam Docks / Moonlit Bay", color: 0x78c850, x: 35, z: 77 },
+  { name: "Peak Ruins / Crownleaf Manor", color: 0x6ab946, x: 58, z: 34 },
+  { name: "Factory / Skycrate Foundry", color: 0x78c850, x: 118, z: 72 },
+  { name: "Clock Tower Summit / Solstice Bellspire", color: 0x6ab946, x: 123, z: 27 },
 ];
 const ZONE_ORDER = ["neon_pier", "palm_grove", "loot_canyon", "sunset_ridge"];
 const ZONE_TITLES = Object.fromEntries(ZONE_ORDER.map((id, index) => [id, ZONES[index].name]));
 const ZONE_CENTERS = Object.fromEntries(ZONE_ORDER.map((id, index) => [id, { x: ZONES[index].x, z: ZONES[index].z }]));
 const NATURE_LAYOUT = {
   palms: [
-    [17, 65], [17, 78], [22, 89],
+    [17, 65], [17, 78], [17, 82], [23, 65], [48, 70],
     [43, 19], [73, 18],
   ],
   bushes: [
-    [42, 27], [42, 40], [50, 47], [58, 48],
-    [66, 47], [82, 34], [74, 27],
+    [42, 27], [42, 40], [39, 51], [58, 49],
+    [68, 51], [79, 45], [70, 22],
   ],
 };
 const PICKUPS = [
@@ -175,21 +175,23 @@ function loadGLTFWithTimeout(url) {
 }
 
 const mats = {
-  grass: material(0x67b87d),
-  cliff: material(0x8f785f),
-  path: material(0xd8bd83),
-  wood: material(0x9b6244),
-  paleWood: material(0xe4c28a),
-  stone: material(0xc8bfa9),
-  darkStone: material(0x777b77),
-  roof: material(0xc86652),
-  gold: material(0xffcc66, 0.45, { metalness: 0.2, emissive: 0x704313, emissiveIntensity: 0.22 }),
-  cream: material(0xfff0c4),
-  blue: material(0x47cbd5),
-  red: material(0xed846b),
-  leaf: material(0x4c9f69),
-  leafLight: material(0x77bd72),
-  dark: material(0x263e50),
+  grass: material(0x78c850),
+  sand: material(0xf3d59b),
+  cliff: material(0x9b7756),
+  path: material(0xe7cfa0),
+  wood: material(0xa96b3e),
+  paleWood: material(0xc58a55),
+  stone: material(0xdfc79e),
+  darkStone: material(0x927759),
+  roof: material(0xe25845),
+  gold: material(0xf2d08a, 0.48, { metalness: 0.16, emissive: 0x74501d, emissiveIntensity: 0.2 }),
+  cream: material(0xf2e2c4),
+  blue: material(0x45caff, 0.34, { emissive: 0x087ba8, emissiveIntensity: 0.46 }),
+  red: material(0xe88c6b),
+  leaf: material(0x4d9d43),
+  leafLight: material(0x82c94c),
+  flower: material(0xff8192, 0.56, { emissive: 0x782e38, emissiveIntensity: 0.12 }),
+  dark: material(0x604a39),
   white: material(0xfff9e9, 0.7),
 };
 
@@ -570,7 +572,7 @@ function resizeRenderer() {
 function buildOcean() {
   const water = new THREE.Mesh(
     new THREE.PlaneGeometry(360, 250),
-    new THREE.MeshBasicMaterial({ color: 0x4cc4e1 }),
+    new THREE.MeshBasicMaterial({ color: 0x14b8d4 }),
   );
   water.rotation.x = -Math.PI / 2;
   water.position.set(WORLD.width / 2, -2.35, WORLD.depth / 2);
@@ -583,35 +585,51 @@ function buildOcean() {
   island.position.set(WORLD.width / 2, -1, WORLD.depth / 2);
   scene.add(island);
 
-  const islandTop = new THREE.Mesh(new THREE.CircleGeometry(71, 56), mats.grass);
+  const beach = new THREE.Mesh(new THREE.CircleGeometry(71, 64), mats.sand);
+  beach.rotation.x = -Math.PI / 2;
+  beach.position.set(WORLD.width / 2, 0.51, WORLD.depth / 2);
+  scene.add(beach);
+
+  const islandTop = new THREE.Mesh(new THREE.CircleGeometry(65.5, 64), mats.grass);
   islandTop.rotation.x = -Math.PI / 2;
-  islandTop.position.set(WORLD.width / 2, 0.515, WORLD.depth / 2);
+  islandTop.position.set(WORLD.width / 2, 0.55, WORLD.depth / 2);
   scene.add(islandTop);
 
   const islandRim = new THREE.Mesh(
-    new THREE.TorusGeometry(71, 0.65, 5, 72),
-    material(0xa6c989),
+    new THREE.TorusGeometry(65.5, 0.32, 5, 80),
+    material(0x91cf59),
   );
   islandRim.rotation.x = Math.PI / 2;
-  islandRim.position.set(WORLD.width / 2, 0.53, WORLD.depth / 2);
+  islandRim.position.set(WORLD.width / 2, 0.57, WORLD.depth / 2);
   scene.add(islandRim);
 
   for (let i = 0; i < 10; i += 1) {
     const angle = i * 0.59 + 0.2;
     const radius = 81 + (i % 3) * 2;
+    const rockRadius = 2.2 + (i % 2) * 0.8;
+    const x = 80 + Math.cos(angle) * radius;
+    const z = 50 + Math.sin(angle) * radius * 0.68;
     const rock = new THREE.Mesh(
-      new THREE.DodecahedronGeometry(2.2 + (i % 2) * 0.8, 0),
+      new THREE.DodecahedronGeometry(rockRadius, 0),
       i % 2 ? mats.cliff : mats.darkStone,
     );
-    rock.position.set(80 + Math.cos(angle) * radius, -0.75, 50 + Math.sin(angle) * radius * 0.68);
+    rock.position.set(x, -0.75, z);
     rock.scale.y = 0.6;
     scene.add(rock);
-    addWorldCollider(rock.position.x, rock.position.z, 1.8 + (i % 2) * 0.35);
+    addWorldCollider(x, z, rockRadius);
+
+    const foam = new THREE.Mesh(
+      new THREE.TorusGeometry(rockRadius + 0.85, 0.12, 4, 18),
+      new THREE.MeshBasicMaterial({ color: 0xf4ffff, transparent: true, opacity: 0.48 }),
+    );
+    foam.rotation.x = Math.PI / 2;
+    foam.position.set(x, -1.72, z);
+    scene.add(foam);
   }
 
   const sun = new THREE.Mesh(
-    new THREE.SphereGeometry(8, 16, 12),
-    new THREE.MeshBasicMaterial({ color: 0xffe6a1 }),
+    new THREE.SphereGeometry(7, 14, 10),
+    new THREE.MeshBasicMaterial({ color: 0xffefb5 }),
   );
   sun.position.set(26, 38, -90);
   scene.add(sun);
@@ -628,7 +646,7 @@ function buildZonePlatforms() {
     const [width, depth] = platformDimensions[index];
     const platform = new THREE.Mesh(
       new THREE.CylinderGeometry(1, 1.07, 0.4, 10),
-      material(zone.color),
+      material(zone.color, 0.95),
     );
     platform.scale.set(width, 1, depth);
     platform.position.set(zone.x, 0.54, zone.z);
@@ -637,7 +655,7 @@ function buildZonePlatforms() {
 
     const inset = new THREE.Mesh(
       new THREE.CylinderGeometry(1, 1, 0.12, 10),
-      index === 0 ? mats.paleWood : mats.path,
+      mats.sand,
     );
     inset.scale.set(width * 0.83, 1, depth * 0.83);
     inset.position.set(zone.x, 0.8, zone.z);
@@ -645,97 +663,139 @@ function buildZonePlatforms() {
     scene.add(inset);
   });
 
-  addPath({ x: 35, z: 77 }, { x: 58, z: 34 }, 4.2, mats.path);
-  addPath({ x: 58, z: 34 }, { x: 118, z: 72 }, 4.5, mats.path);
-  addPath({ x: 118, z: 72 }, { x: 123, z: 42 }, 4.2, mats.path);
-  addPath({ x: 35, z: 77 }, { x: 18, z: 86 }, 3.2, mats.wood);
+  const routes = [
+    [[35, 77], [38, 66], [44, 56], [51, 46], [58, 34]],
+    [[58, 34], [73, 32], [86, 38], [98, 48], [108, 60], [118, 72]],
+    [[118, 72], [122, 62], [125, 50], [125, 39], [123, 27]],
+  ];
+  for (const route of routes) {
+    for (let index = 1; index < route.length; index += 1) {
+      const [startX, startZ] = route[index - 1];
+      const [endX, endZ] = route[index];
+      addPath({ x: startX, z: startZ }, { x: endX, z: endZ }, 4.2, mats.path);
+    }
+  }
+  addPath({ x: 35, z: 77 }, { x: 35, z: 88 }, 3.6, mats.path);
+  addPath({ x: 35, z: 88 }, { x: 8, z: 88 }, 4.2, mats.wood);
 }
 
 function buildBayLandmark() {
-  addPath({ x: 35, z: 77 }, { x: 35, z: 88 }, 3.6, mats.wood);
-  addPath({ x: 18, z: 88 }, { x: 47, z: 88 }, 4.2, mats.paleWood);
-  for (const x of [20, 28, 37, 46]) {
-    const piling = addMesh(scene, new THREE.CylinderGeometry(0.13, 0.18, 1.7, 6), mats.wood, [x, 0.1, 86.6]);
-    piling.position.y = -0.03;
-    addWorldCollider(x, 86.6, 0.42);
+  for (const [x, z] of [[10, 84], [19, 84], [29, 84], [39, 84], [52, 84], [10, 92], [19, 92], [29, 92], [39, 92], [52, 92]]) {
+    addMesh(scene, new THREE.CylinderGeometry(0.16, 0.22, 1.9, 6), mats.wood, [x, -0.12, z]);
+    addWorldCollider(x, z, 0.28);
   }
-  for (const [x, z] of [[29, 91], [36, 91], [43, 91]]) {
-    box(scene, [1.7, 1.5, 1.7], [x, 1.3, z], mats.wood);
-    box(scene, [1.78, 0.15, 0.18], [x, 1.3, z - 0.87], mats.paleWood);
-    addWorldCollider(x, z, 1.05);
+  for (const x of [10, 14, 18, 22, 26, 30, 34, 38, 42, 46]) {
+    box(scene, [3.7, 0.22, 4.4], [x, 0.58, 88], mats.wood);
+    box(scene, [0.1, 0.035, 4.2], [x + 1.82, 0.71, 88], mats.paleWood);
+  }
+  for (const [z, y] of [[83.2, 0.59], [84.5, 0.63]]) {
+    box(scene, [4.2, 0.14, 1.2], [35, y, z], mats.sand);
+  }
+
+  for (const x of [25, 45]) {
+    const lantern = new THREE.Group();
+    addMesh(lantern, new THREE.CylinderGeometry(0.13, 0.2, 2.1, 6), mats.wood, [0, 1.05, 0]);
+    addMesh(lantern, new THREE.BoxGeometry(0.72, 0.72, 0.72), mats.gold, [0, 2.35, 0]);
+    addMesh(
+      lantern,
+      new THREE.BoxGeometry(0.48, 0.48, 0.48),
+      material(0xffd77b, 0.36, { emissive: 0xffa53e, emissiveIntensity: 0.75 }),
+      [0, 2.35, 0],
+    );
+    lantern.position.set(x, 0.53, 78);
+    scene.add(lantern);
+    addWorldCollider(x, 78, 0.62);
   }
 }
 
 function buildManorLandmark() {
   const x = 58;
-  const archZ = 17;
-  for (const offset of [-8, 0, 8]) {
-    addMesh(scene, new THREE.CylinderGeometry(0.7, 0.9, 6, 8), mats.stone, [x + offset, 3.8, archZ]);
-    addWorldCollider(x + offset, archZ, 1.1);
+  const z = 34;
+  addMesh(scene, new THREE.CylinderGeometry(13, 13.7, 0.3, 40), mats.stone, [x, 0.59, z]);
+  addMesh(scene, new THREE.CylinderGeometry(10.7, 11.3, 0.18, 40), mats.cream, [x, 0.82, z]);
+  addMesh(scene, new THREE.TorusGeometry(11.9, 0.22, 5, 48), mats.gold, [x, 0.77, z]).rotation.x = Math.PI / 2;
+
+  const columns = [
+    [49, 24], [58, 20], [67, 24], [73, 28],
+    [74, 45], [45, 45],
+  ];
+  for (const [pillarX, pillarZ] of columns) {
+    addMesh(scene, new THREE.CylinderGeometry(0.56, 0.72, 5.3, 8), mats.cream, [pillarX, 3.3, pillarZ]);
+    addMesh(scene, new THREE.CylinderGeometry(0.78, 0.78, 0.25, 8), mats.stone, [pillarX, 0.82, pillarZ]);
+    addWorldCollider(pillarX, pillarZ, 0.82);
   }
-  box(scene, [18, 1.05, 1.5], [x, 7, archZ], mats.stone);
-  box(scene, [2.4, 4.4, 1], [x - 17, 2.8, 45], mats.darkStone);
-  box(scene, [2.4, 4.4, 1], [x + 17, 2.8, 45], mats.stone);
-  addWorldCollider(x - 17, 45, 1.4);
-  addWorldCollider(x + 17, 45, 1.4);
-  const top = addMesh(scene, new THREE.ConeGeometry(3.2, 3.3, 4), mats.roof, [x + 18, 6.5, archZ]);
-  top.rotation.y = Math.PI / 4;
+  for (const [startX, startZ, endX, endZ] of [
+    [49, 24, 58, 20], [58, 20, 67, 24], [67, 24, 73, 28],
+    [73, 28, 74, 45], [74, 45, 45, 45], [45, 45, 49, 24],
+  ]) {
+    addPath({ x: startX, z: startZ }, { x: endX, z: endZ }, 0.7, mats.stone, 6.05);
+  }
 }
 
 function buildFactoryLandmark() {
-  for (const [x, z, width, depth] of [[103, 70, 12, 10], [138, 55, 12, 10], [91, 84, 10, 8]]) {
-    addWorldCollider(x, z, Math.max(width, depth) * 0.48);
-    box(scene, [width, 5.2, depth], [x, 2.9, z], mats.darkStone);
-    box(scene, [width + 1, 1.1, depth + 1], [x, 6.05, z], mats.roof);
-  }
-  for (const [x, z] of [[97, 63], [147, 45], [120, 87]]) {
-    box(scene, [2.6, 7, 2.6], [x, 3.8, z], mats.darkStone);
-    addMesh(scene, new THREE.CylinderGeometry(1.1, 1.35, 0.65, 8), mats.dark, [x, 7.65, z]);
-    addWorldCollider(x, z, 1.4);
+  for (const [x, z, width, depth] of [[101, 82, 12, 10], [143, 54, 12, 10], [93, 62, 10, 8]]) {
+    box(scene, [width, 5.2, depth], [x, 2.9, z], mats.stone);
+    addWorldCollider(x, z, Math.hypot(width / 2, depth / 2));
+    for (const sign of [-1, 1]) {
+      const roofPanel = box(
+        scene,
+        [width + 1, 0.28, depth * 0.72],
+        [x, 5.9, z + sign * depth * 0.18],
+        mats.roof,
+      );
+      roofPanel.rotation.x = sign * 0.36;
+    }
+    box(scene, [1.6, 2.5, 0.18], [x, 1.8, z - depth / 2 - 0.11], mats.wood);
+    for (const windowX of [x - width * 0.3, x + width * 0.3]) {
+      box(scene, [1.3, 1.2, 0.16], [windowX, 3.5, z - depth / 2 - 0.12], mats.blue);
+      box(scene, [1.5, 0.12, 0.2], [windowX, 3.5, z - depth / 2 - 0.22], mats.cream);
+    }
   }
 
   const crateColors = [mats.wood, mats.paleWood, mats.red];
-  [[109, 57], [114, 54], [111, 48], [136, 65], [136, 73]].forEach(([x, z], index) => {
+  [[110, 76], [115, 78], [110, 82], [136, 65], [136, 73]].forEach(([x, z], index) => {
     box(scene, [4.6, 3.2, 3.6], [x, 2.1, z], crateColors[index % crateColors.length]);
     box(scene, [4.7, 0.18, 0.18], [x, 2.1, z - 1.85], mats.cream);
-    addWorldCollider(x, z, 2.45);
+    addWorldCollider(x, z, Math.hypot(2.3, 1.8));
   });
 }
 
 function buildClockTower() {
   const x = 123;
   const z = 27;
-  const plaza = new THREE.Mesh(
-    new THREE.CylinderGeometry(15, 15, 0.2, 48),
-    mats.path,
-  );
-  plaza.position.set(x, 0.58, z);
-  scene.add(plaza);
-  const arenaRing = addMesh(scene, new THREE.TorusGeometry(15.5, 0.28, 6, 56), mats.gold, [x, 0.76, z]);
-  arenaRing.rotation.x = Math.PI / 2;
-  addWorldCollider(x, z, 5.4);
-  addMesh(scene, new THREE.CylinderGeometry(5, 6.4, 1.2, 8), mats.darkStone, [x, 1.45, z]);
-  addMesh(scene, new THREE.CylinderGeometry(3.9, 4.6, 10, 8), mats.stone, [x, 6.8, z]);
-  addMesh(scene, new THREE.CylinderGeometry(4.4, 4.4, 0.6, 8), mats.darkStone, [x, 11.8, z]);
-  const roof = addMesh(scene, new THREE.ConeGeometry(5.6, 5.4, 8), mats.roof, [x, 14.6, z]);
+  addMesh(scene, new THREE.CylinderGeometry(22, 22.8, 0.24, 56), mats.sand, [x, 0.59, z]);
+  for (const [radius, ringMaterial, y] of [
+    [20.4, mats.gold, 0.76], [15.5, mats.red, 0.78], [10.5, mats.gold, 0.8],
+  ]) {
+    const ring = addMesh(scene, new THREE.TorusGeometry(radius, 0.34, 5, 56), ringMaterial, [x, y, z]);
+    ring.rotation.x = Math.PI / 2;
+  }
+
+  const towerZ = 8;
+  addMesh(scene, new THREE.CylinderGeometry(5.5, 6.4, 1.2, 8), mats.stone, [x, 1.25, towerZ]);
+  addMesh(scene, new THREE.CylinderGeometry(4.4, 4.8, 10, 8), mats.cream, [x, 6.8, towerZ]);
+  addMesh(scene, new THREE.CylinderGeometry(4.8, 4.8, 0.6, 8), mats.gold, [x, 11.8, towerZ]);
+  addWorldCollider(x, towerZ, 6.4);
+  const roof = addMesh(scene, new THREE.ConeGeometry(5.6, 5.4, 8), mats.roof, [x, 14.6, towerZ]);
   roof.rotation.y = Math.PI / 8;
 
-  const face = addMesh(scene, new THREE.CircleGeometry(2.35, 24), mats.cream, [x, 7.4, z - 4.16]);
+  const face = addMesh(scene, new THREE.CircleGeometry(2.35, 24), mats.cream, [x, 7.4, towerZ - 4.16]);
   face.rotation.x = 0;
-  const rim = addMesh(scene, new THREE.TorusGeometry(2.48, 0.22, 7, 24), mats.gold, [x, 7.4, z - 4.2]);
+  const rim = addMesh(scene, new THREE.TorusGeometry(2.48, 0.22, 7, 24), mats.gold, [x, 7.4, towerZ - 4.2]);
   rim.rotation.x = 0;
-  box(scene, [0.18, 1.6, 0.12], [x, 7.8, z - 4.38], mats.dark);
-  box(scene, [1.1, 0.18, 0.12], [x + 0.45, 7.05, z - 4.38], mats.dark);
+  box(scene, [0.18, 1.6, 0.12], [x, 7.8, towerZ - 4.38], mats.dark);
+  box(scene, [1.1, 0.18, 0.12], [x + 0.45, 7.05, towerZ - 4.38], mats.dark);
 
   for (const [pillarX, pillarZ] of [[109, 13], [137, 13], [109, 41], [137, 41]]) {
-    addMesh(scene, new THREE.CylinderGeometry(0.65, 0.85, 5.2, 8), mats.stone, [pillarX, 3.1, pillarZ]);
-    addMesh(scene, new THREE.SphereGeometry(0.55, 10, 8), mats.gold, [pillarX, 5.9, pillarZ]);
-    addWorldCollider(pillarX, pillarZ, 0.95);
+    addMesh(scene, new THREE.CylinderGeometry(0.72, 0.88, 5.2, 8), mats.stone, [pillarX, 3.1, pillarZ]);
+    addMesh(scene, new THREE.SphereGeometry(0.72, 10, 8), mats.gold, [pillarX, 5.9, pillarZ]);
+    addMesh(scene, new THREE.OctahedronGeometry(0.94, 0), mats.blue, [pillarX, 6.45, pillarZ]);
+    addWorldCollider(pillarX, pillarZ, 0.9);
   }
 }
 
 function createProceduralTree(position, variant = 0) {
-  addWorldCollider(position[0], position[1], 1.25);
+  addWorldCollider(position[0], position[1], 0.52);
   const tree = new THREE.Group();
   const trunk = addMesh(tree, new THREE.CylinderGeometry(0.28, 0.48, 3.1, 6), mats.wood, [0, 1.45, 0]);
   trunk.rotation.z = variant % 2 ? 0.08 : 0;
@@ -754,7 +814,7 @@ function createProceduralTree(position, variant = 0) {
 }
 
 function createProceduralBush(position, variant = 0) {
-  addWorldCollider(position[0], position[1], 1.05, { jumpable: true, jumpClearance: 0.82 });
+  addWorldCollider(position[0], position[1], 1.35, { jumpable: true, jumpClearance: 0.82 });
   const bush = new THREE.Group();
   for (let i = 0; i < 3; i += 1) {
     addMesh(
@@ -763,6 +823,9 @@ function createProceduralBush(position, variant = 0) {
       variant % 2 ? mats.leafLight : mats.leaf,
       [i * 0.74 - 0.74, 0.55 + (i % 2) * 0.12, 0],
     );
+  }
+  for (const [x, y, z] of [[-0.42, 1.16, -0.3], [0.22, 1.25, -0.34], [0.78, 1.08, -0.2]]) {
+    addMesh(bush, new THREE.SphereGeometry(0.16, 7, 5), mats.flower, [x, y, z]);
   }
   bush.position.set(position[0], 0.52, position[1]);
   scene.add(bush);
@@ -785,13 +848,18 @@ function placeAssetNature(gltf, positions, targetHeight) {
   if (sourceVariants.length === 0) throw new Error("Nature model contains no visible objects.");
   positions.forEach((position, index) => {
     const isBush = targetHeight <= 2.5;
-    addWorldCollider(position[0], position[1], isBush ? 1.05 : 1.35, isBush
+    addWorldCollider(position[0], position[1], isBush ? 1.35 : 0.95, isBush
       ? { jumpable: true, jumpClearance: 0.82 }
       : {});
     const source = sourceVariants[index % sourceVariants.length];
     const prop = normalizeStaticModel(source, targetHeight * (0.82 + (index % 3) * 0.1));
     prop.position.add(new THREE.Vector3(position[0], 0.54, position[1]));
     scene.add(prop);
+    if (isBush) {
+      for (const [x, y, z] of [[-0.45, 1.3, -0.45], [0.2, 1.55, -0.5], [0.72, 1.2, -0.28]]) {
+        addMesh(prop, new THREE.SphereGeometry(0.18, 7, 5), mats.flower, [x, y, z]);
+      }
+    }
   });
 }
 
@@ -2696,12 +2764,12 @@ function init() {
   if (!setupRenderer()) return;
 
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x8be0eb);
-  scene.fog = new THREE.Fog(0x8be0eb, 95, 190);
+  scene.background = new THREE.Color(0xb9eff4);
+  scene.fog = new THREE.Fog(0xb9eff4, 115, 215);
   camera = new THREE.PerspectiveCamera(54, 1, 0.1, 320);
 
-  scene.add(new THREE.HemisphereLight(0xe8ffff, 0x796149, 2.0));
-  const sun = new THREE.DirectionalLight(0xfff0d2, 2.7);
+  scene.add(new THREE.HemisphereLight(0xfff9e8, 0x9b8054, 2.2));
+  const sun = new THREE.DirectionalLight(0xfff1d0, 3.0);
   sun.position.set(-30, 70, 20);
   scene.add(sun);
 
