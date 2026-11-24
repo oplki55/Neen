@@ -30,6 +30,8 @@ const CAMERA_DRAG_SENSITIVITY = 0.006;
 const CAMERA_PITCH_DRAG_SENSITIVITY = 0.004;
 const CAMERA_KEY_TURN_SPEED = 2.2;
 const CAMERA_KEY_HOLD_DELAY = 180;
+const WINTER_MODEL_PATH = "./assets/winter-3d/models/";
+
 function expandWorldCoordinate(coordinate) {
   return WORLD.width / 2 + (coordinate - BASE_WORLD_SIZE / 2) * WORLD_EXPANSION;
 }
@@ -71,11 +73,21 @@ const GUARDIAN_DEFS = [
   { id: "guardian_grove", zone: "palm_grove", x: 52, z: 117, name: "Pine Line Guardian", hp: 8, color: 0x4b6670, accent: 0xa2e9db },
   { id: "guardian_canyon", zone: "loot_canyon", x: 123, z: 96, name: "Icefield Sentinel", hp: 10, color: 0x496b8b, accent: 0x9ce5ff },
   { id: "guardian_ridge", zone: "sunset_ridge", x: 98, z: 57, name: "Arctic Bunker Boss", hp: 24, color: 0x38536b, accent: 0xffd77e, boss: true },
-].map(expandWorldPoint);
+].map((definition) => ({
+  ...expandWorldPoint(definition),
+  modelPath: `${WINTER_MODEL_PATH}${definition.boss ? "frost-giant-boss.glb" : "low-poly-orc-brute.glb"}`,
+  modelHeight: definition.boss ? 8 : 5,
+}));
 const DRONE_DEFS = [
   { id: "drone_small", zone: "palm_grove", x: 56, z: 96, name: "West Patrol Drone", hp: 5, color: 0x57b8d5, accent: 0xc3f9ff, kind: "small" },
-  { id: "drone_flying", zone: "sunset_ridge", x: 126, z: 31, name: "Arctic Scout Drone", hp: 4, color: 0x57b8d5, accent: 0xc3f9ff, kind: "flying" },
-].map(expandWorldPoint);
+  { id: "drone_flying", zone: "sunset_ridge", x: 126, z: 31, name: "Ice Wyvern", hp: 8, color: 0x57b8d5, accent: 0xc3f9ff, kind: "flying" },
+].map((definition) => ({
+  ...expandWorldPoint(definition),
+  modelPath: `${WINTER_MODEL_PATH}${definition.kind === "flying" ? "low-poly-wyvern.glb" : "robot-drone-trio.glb"}`,
+  modelHeight: definition.kind === "flying" ? 4.3 : 2,
+  modelType: definition.kind === "flying" ? "standard" : "drone-trio",
+  hoverHeight: definition.kind === "flying" ? 3.1 : 1.8,
+}));
 const WEAPON_STATS = {
   wand: { cooldown: 0.26, damage: 1, speed: 42, range: 48, color: 0xff78bd },
   mp40: { cooldown: 0.105, damage: 1, speed: 50, range: 42, color: 0x70e4ff },
@@ -180,6 +192,8 @@ let knockdownMessageUntil = 0;
 
 const loader = new GLTFLoader();
 const GLTF_LOAD_TIMEOUT_MS = 6000;
+const enemyGLTFCache = new Map();
+const ENEMY_FLASH_COLOR = new THREE.Color(0xffffff);
 const material = (color, roughness = 0.86, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness, ...extra });
 
 function loadGLTFWithTimeout(url) {
@@ -191,6 +205,18 @@ function loadGLTFWithTimeout(url) {
     );
   });
   return Promise.race([loader.loadAsync(url), timeout]).finally(() => window.clearTimeout(timeoutId));
+}
+
+function loadEnemyGLTF(url) {
+  let promise = enemyGLTFCache.get(url);
+  if (!promise) {
+    promise = loadGLTFWithTimeout(url).catch((error) => {
+      enemyGLTFCache.delete(url);
+      throw error;
+    });
+    enemyGLTFCache.set(url, promise);
+  }
+  return promise;
 }
 
 const mats = {
@@ -1420,29 +1446,92 @@ function clearGeneratedVisual(group) {
   group.clear();
 }
 
+function isolateEnemyMaterials(model) {
+  model.traverse((node) => {
+    if (!node.isMesh) return;
+    node.material = Array.isArray(node.material)
+      ? node.material.map((source) => source.clone())
+      : node.material.clone();
+  });
+}
+
+function normalizeEnemyModel(model, targetHeight, offsetX = 0, offsetZ = 0) {
+  model.updateMatrixWorld(true);
+  const bounds = new THREE.Box3().setFromObject(model);
+  const size = bounds.getSize(new THREE.Vector3());
+  const center = bounds.getCenter(new THREE.Vector3());
+  const scale = targetHeight / Math.max(size.y, 0.1);
+  model.scale.multiplyScalar(scale);
+  model.position.set(offsetX - center.x * scale, -bounds.min.y * scale, offsetZ - center.z * scale);
+  model.updateMatrixWorld(true);
+  return model;
+}
+
+function createDroneTrioVisual(gltf, targetHeight) {
+  const sources = gltf.scene.children.filter((node) => node.name.startsWith("Drone_"));
+  if (sources.length !== 3) {
+    throw new Error(`The robot drone model should contain three top-level units, found ${sources.length}.`);
+  }
+  const formation = new THREE.Group();
+  const offsets = [[-3.1, -1], [0, 1.6], [3.1, -1]];
+  formation.userData.droneUnits = sources.map((source, index) => {
+    const drone = source.clone(true);
+    isolateEnemyMaterials(drone);
+    normalizeEnemyModel(drone, targetHeight, offsets[index][0], offsets[index][1]);
+    formation.add(drone);
+    return { actor: drone, baseY: drone.position.y, phase: index * 2.1 };
+  });
+  return formation;
+}
+
 async function loadEnemyModel(path, enemy, targetHeight) {
   try {
-    const gltf = await loadGLTFWithTimeout(path);
-    const model = gltf.scene;
-    const bounds = new THREE.Box3().setFromObject(model);
-    const size = bounds.getSize(new THREE.Vector3());
-    const center = bounds.getCenter(new THREE.Vector3());
-    const scale = targetHeight / Math.max(size.y, 0.1);
-    model.scale.multiplyScalar(scale);
-    model.position.set(-center.x * scale, -bounds.min.y * scale, -center.z * scale);
+    const gltf = await loadEnemyGLTF(path);
+    let model;
+    if (enemy.modelType === "drone-trio") {
+      model = createDroneTrioVisual(gltf, targetHeight);
+    } else {
+      model = gltf.scene.clone(true);
+      isolateEnemyMaterials(model);
+      normalizeEnemyModel(model, targetHeight);
+    }
     clearGeneratedVisual(enemy.visual);
     enemy.root.remove(enemy.visual);
     enemy.visual = model;
     enemy.root.add(model);
-    enemy.mixer = new THREE.AnimationMixer(model);
+    enemy.mixer = gltf.animations.length > 0 ? new THREE.AnimationMixer(model) : null;
     const idle = enemy.kind === "flying"
       ? gltf.animations.find((clip) => /fly|flying|hover/i.test(clip.name)) || chooseIdleClip(gltf.animations)
       : chooseIdleClip(gltf.animations);
-    if (idle) enemy.activeAction = enemy.mixer.clipAction(idle).play();
+    if (idle && enemy.mixer) enemy.activeAction = enemy.mixer.clipAction(idle).play();
   } catch (error) {
     console.error(`Could not load local ${enemy.kind} enemy model (${path}); using its procedural fallback.`, error);
     showMessage(isArabic() ? "تعذر تحميل نموذج عدو؛ يستخدم شكلاً بديلاً." : "An enemy model could not load; using its procedural fallback.", 3600);
   }
+}
+
+function setEnemyHitFlash(enemy, strength) {
+  enemy.visual?.traverse((node) => {
+    if (!node.isMesh) return;
+    const materials = Array.isArray(node.material) ? node.material : [node.material];
+    for (const meshMaterial of materials) {
+      if (!meshMaterial.userData.winterHitFlashBase) {
+        meshMaterial.userData.winterHitFlashBase = {
+          color: meshMaterial.color?.clone(),
+          emissive: meshMaterial.emissive?.clone(),
+          emissiveIntensity: meshMaterial.emissiveIntensity ?? 1,
+        };
+      }
+      const base = meshMaterial.userData.winterHitFlashBase;
+      if (meshMaterial.color && base.color) {
+        meshMaterial.color.copy(base.color).lerp(ENEMY_FLASH_COLOR, strength * 0.8);
+      }
+      if (meshMaterial.emissive && base.emissive) {
+        meshMaterial.emissive.copy(base.emissive).lerp(ENEMY_FLASH_COLOR, strength);
+        meshMaterial.emissiveIntensity = base.emissiveIntensity + strength * 0.8;
+      }
+    }
+  });
 }
 
 function createWorldPickup(pickup) {
@@ -1500,14 +1589,18 @@ function buildInteractiveWorld() {
   PICKUPS.forEach(createWorldPickup);
   BEACONS.forEach(createBeacon);
   buildSupplyCrate();
-  GUARDIAN_DEFS.forEach(createCombatEnemy);
+  const guardianLoads = GUARDIAN_DEFS.map((definition) => {
+    const enemy = createCombatEnemy(definition);
+    return loadEnemyModel(definition.modelPath, enemy, definition.modelHeight);
+  });
   const droneSmall = createCombatEnemy(DRONE_DEFS[0]);
   const droneFlying = createCombatEnemy(DRONE_DEFS[1]);
   spawnCombatDrop("medkit", { x: expandWorldCoordinate(43), z: expandWorldCoordinate(31) });
   spawnCombatDrop("shield", { x: expandWorldCoordinate(108), z: expandWorldCoordinate(106) });
   return [
-    loadEnemyModel("./assets/sunny-3d/models/enemy-small.glb", droneSmall, 3.1),
-    loadEnemyModel("./assets/sunny-3d/models/enemy-flying.glb", droneFlying, 3.5),
+    ...guardianLoads,
+    loadEnemyModel(DRONE_DEFS[0].modelPath, droneSmall, DRONE_DEFS[0].modelHeight),
+    loadEnemyModel(DRONE_DEFS[1].modelPath, droneFlying, DRONE_DEFS[1].modelHeight),
   ];
 }
 
@@ -2621,6 +2714,8 @@ function defeatEnemy(enemy) {
 function damageEnemy(enemy, amount) {
   if (!enemy?.alive) return;
   enemy.hp = Math.max(0, enemy.hp - amount);
+  enemy.hitFlashUntil = performance.now() + 170;
+  setEnemyHitFlash(enemy, 1);
   updateEnemyHealth(enemy);
   playSound("hit");
   if (enemy.hp === 0) defeatEnemy(enemy);
@@ -2645,7 +2740,7 @@ function createTelegraph(enemy, pattern, delay, radius = 3) {
   ring.scale.set(radius, radius, 1);
   ring.position.set(enemy.root.position.x, 0.64, enemy.root.position.z);
   scene.add(ring);
-  telegraphs.push({ enemy, pattern, ring, remaining: delay, radius });
+  telegraphs.push({ enemy, pattern, ring, remaining: delay, duration: delay, radius, phase: Math.random() * Math.PI * 2 });
 }
 
 function resolveTelegraph(telegraph) {
@@ -2965,11 +3060,34 @@ function updateCombat(delta, now) {
   const activeEnemies = enemies.filter((enemy) => enemy.alive && enemy.zone === activeZoneId);
   for (const enemy of enemies) {
     if (!enemy.alive) continue;
+    enemy.phase += delta * (enemy.boss ? 2.2 : 3.1);
+    enemy.root.rotation.y = Math.atan2(
+      playerState.x - enemy.root.position.x,
+      playerState.z - enemy.root.position.z,
+    );
+    if (enemy.hitFlashUntil) {
+      const flash = Math.max(0, (enemy.hitFlashUntil - now) / 170);
+      setEnemyHitFlash(enemy, flash);
+      if (flash === 0) enemy.hitFlashUntil = 0;
+    }
     if (enemy.kind === "small" || enemy.kind === "flying") {
-      enemy.phase += delta * 1.3;
       enemy.root.position.x = enemy.x + Math.sin(enemy.phase) * 3.2;
       enemy.root.position.z = enemy.z + Math.cos(enemy.phase * 0.8) * 2.6;
-      enemy.root.position.y = (enemy.kind === "flying" ? 2.35 : 0.53) + Math.sin(enemy.phase * 1.7) * 0.42;
+      enemy.root.position.y = enemy.hoverHeight + Math.sin(enemy.phase * 1.7) * 0.34;
+      const droneUnits = enemy.visual.userData.droneUnits;
+      if (droneUnits) {
+        droneUnits.forEach((unit) => {
+          const hover = Math.sin(now * 0.0026 + unit.phase) * 0.1;
+          unit.actor.position.y = unit.baseY + hover;
+          unit.actor.rotation.y = Math.sin(now * 0.0014 + unit.phase) * 0.12;
+        });
+      }
+    } else {
+      const stride = Math.sin(enemy.phase);
+      enemy.visual.position.y = Math.max(0, stride) * (enemy.boss ? 0.1 : 0.07);
+      enemy.visual.position.x = Math.sin(enemy.phase * 0.5) * (enemy.boss ? 0.035 : 0.06);
+      enemy.visual.rotation.z = Math.sin(enemy.phase * 0.5) * (enemy.boss ? 0.035 : 0.055);
+      enemy.visual.rotation.x = Math.cos(enemy.phase) * 0.018;
     }
     if (!activeEnemies.includes(enemy) || now < gameState.knockedDownUntil) continue;
     enemy.mixer?.update(delta);
@@ -2994,6 +3112,9 @@ function updateCombat(delta, now) {
     const telegraph = telegraphs[i];
     telegraph.remaining -= delta;
     telegraph.ring.material.opacity = Math.max(0.15, Math.min(1, telegraph.remaining / 0.9));
+    const elapsed = telegraph.duration - telegraph.remaining;
+    const pulse = 0.92 + Math.sin(elapsed * 15 + telegraph.phase) * 0.08;
+    telegraph.ring.scale.set(telegraph.radius * pulse, telegraph.radius * pulse, 1);
     if (telegraph.remaining <= 0) {
       resolveTelegraph(telegraph);
       scene.remove(telegraph.ring);
