@@ -25,13 +25,9 @@
     || !(zoneNode instanceof HTMLElement)
     || !(minimap instanceof HTMLElement)
     || !(mapToggle instanceof HTMLButtonElement)
-    || !(codexDialog instanceof HTMLDialogElement)
-    || !(codexGrid instanceof HTMLElement)
     || !(objectivesNode instanceof HTMLElement)
     || !(startButton instanceof HTMLButtonElement)
     || !(completeButton instanceof HTMLButtonElement)
-    || !(shopDialog instanceof HTMLDialogElement)
-    || !(leaderboardDialog instanceof HTMLDialogElement)
   ) return;
 
   const context = canvas.getContext("2d", { alpha: false });
@@ -234,6 +230,11 @@
     wand: { name: "Starlight Wand", cooldown: 260, speed: 790, life: .95, damage: 1, range: 660, color: "#ff78bd", trim: "#ffe078" },
     mp40: { name: "MP40 Rapid", cooldown: 105, speed: 920, life: .58, damage: 1, range: 500, color: "#70e4ff", trim: "#eaffff" },
     ak47: { name: "AK-47 Heavy", cooldown: 620, speed: 1080, life: 1.25, damage: 2, range: 1000, color: "#ffb45c", trim: "#fff1bc", knockback: 52 },
+  };
+  const SKIN_PALETTES = {
+    skin_neon_crown: { accent: "#65f4ff", trim: "#ff7bd5", jacket: "#243b66" },
+    skin_sakura_bloom: { accent: "#ffafd7", trim: "#fff0f7", jacket: "#673e67" },
+    skin_golden_empress: { accent: "#ffd56a", trim: "#fff1a8", jacket: "#76502f" },
   };
   const readSavedAvatar = () => {
     try {
@@ -618,6 +619,7 @@
   };
 
   const renderCodex = () => {
+    if (!(codexGrid instanceof HTMLElement)) return;
     codexGrid.replaceChildren();
     const found = new Set(state.progress.unlocked_collectibles);
     for (const collectible of state.codex) {
@@ -2946,13 +2948,7 @@
     state.lastBeamAt = now;
 
     const look = AVATAR_LOOKS.find((item) => item.id === state.avatarId) || AVATAR_LOOKS[0];
-    const equippedSkin = state.shop.loadout.skin;
-    const skinPalettes = {
-      skin_neon_crown: { accent: "#65f4ff", trim: "#ff7bd5", jacket: "#243b66" },
-      skin_sakura_bloom: { accent: "#ffafd7", trim: "#fff0f7", jacket: "#673e67" },
-      skin_golden_empress: { accent: "#ffd56a", trim: "#fff1a8", jacket: "#76502f" },
-    };
-    const shopSkin = skinPalettes[equippedSkin];
+    const shopSkin = SKIN_PALETTES[state.shop.loadout.skin];
     const accent = shopSkin?.accent || look.accent || "#ff4fa3";
     const trim = shopSkin?.trim || look.trim || "#f3b844";
 
@@ -3900,8 +3896,9 @@
     const squashX = state.jumpUntil > now && jumpProgress < 0.12 ? 1.14 : 1;
     const squashY = state.jumpUntil > now && jumpProgress < 0.12 ? 0.82 : 1;
     const look = AVATAR_LOOKS.find((item) => item.id === state.avatarId) || AVATAR_LOOKS[0];
-    const accent = look.accent || "#ff4fa3";
-    const trim = look.trim || "#f3b844";
+    const shopSkin = SKIN_PALETTES[state.shop.loadout.skin];
+    const accent = shopSkin?.accent || look.accent || "#ff4fa3";
+    const trim = shopSkin?.trim || look.trim || "#f3b844";
     const x = state.position.x;
     const y = state.position.y - jumpHeight + bob;
     const facingSign = state.facing.x < -0.15 ? -1 : 1;
@@ -4148,6 +4145,7 @@
   };
 
   const openCodex = () => {
+    if (!(codexDialog instanceof HTMLDialogElement)) return;
     renderCodex();
     if (!codexDialog.open) codexDialog.showModal();
   };
@@ -4184,7 +4182,7 @@
     }
   });
   window.addEventListener("keydown", (event) => {
-    if (codexDialog.open && event.key !== "Escape") return;
+    if (codexDialog instanceof HTMLDialogElement && codexDialog.open && event.key !== "Escape") return;
     if (event.target === avatarSelect) return;
     const key = normalizeKey(event.key);
     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(key)) event.preventDefault();
@@ -4255,10 +4253,16 @@
   const codexOpenButton = document.querySelector("[data-codex-open]");
   const codexCloseButton = document.querySelector("[data-codex-close]");
   codexOpenButton?.addEventListener("click", openCodex);
-  codexCloseButton?.addEventListener("click", () => codexDialog.close());
+  if (codexDialog instanceof HTMLDialogElement) {
+    codexCloseButton?.addEventListener("click", () => codexDialog.close());
+    codexDialog.addEventListener("click", (event) => {
+      if (event.target === codexDialog) codexDialog.close();
+    });
+  }
   const shopOpenButton = document.querySelector("[data-shop-open]");
   const shopCloseButton = document.querySelector("[data-shop-close]");
   shopOpenButton?.addEventListener("click", () => {
+    if (!(shopDialog instanceof HTMLDialogElement)) return;
     if (!state.authenticated) {
       toast("Sign in to open the Island Shop.", 2600);
       return;
@@ -4266,20 +4270,25 @@
     void refreshShop();
     if (!shopDialog.open) shopDialog.showModal();
   });
-  shopCloseButton?.addEventListener("click", () => shopDialog.close());
-  shopDialog.addEventListener("click", (event) => {
-    if (event.target === shopDialog) shopDialog.close();
-  });
+  if (shopDialog instanceof HTMLDialogElement) {
+    shopCloseButton?.addEventListener("click", () => shopDialog.close());
+    shopDialog.addEventListener("click", (event) => {
+      if (event.target === shopDialog) shopDialog.close();
+    });
+  }
   const leaderboardOpenButton = document.querySelector("[data-leaderboard-open]");
   const leaderboardCloseButton = document.querySelector("[data-leaderboard-close]");
   leaderboardOpenButton?.addEventListener("click", () => {
+    if (!(leaderboardDialog instanceof HTMLDialogElement)) return;
     void refreshLeaderboard();
     if (!leaderboardDialog.open) leaderboardDialog.showModal();
   });
-  leaderboardCloseButton?.addEventListener("click", () => leaderboardDialog.close());
-  leaderboardDialog.addEventListener("click", (event) => {
-    if (event.target === leaderboardDialog) leaderboardDialog.close();
-  });
+  if (leaderboardDialog instanceof HTMLDialogElement) {
+    leaderboardCloseButton?.addEventListener("click", () => leaderboardDialog.close());
+    leaderboardDialog.addEventListener("click", (event) => {
+      if (event.target === leaderboardDialog) leaderboardDialog.close();
+    });
+  }
   document.querySelectorAll("[data-shop-tab]").forEach((button) => {
     button.addEventListener("click", () => {
       state.shopCategory = button.getAttribute("data-shop-tab") || "weapons";
@@ -4307,9 +4316,6 @@
   }
   document.querySelectorAll("[data-weapon]").forEach((button) => {
     button.addEventListener("click", () => switchWeapon(button.getAttribute("data-weapon") || "wand"));
-  });
-  codexDialog.addEventListener("click", (event) => {
-    if (event.target === codexDialog) codexDialog.close();
   });
   mapToggle.addEventListener("click", () => {
     const expanded = minimap.classList.toggle("is-expanded");
