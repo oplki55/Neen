@@ -146,7 +146,19 @@ let lastSupplyAt = 0;
 let knockdownMessageUntil = 0;
 
 const loader = new GLTFLoader();
+const GLTF_LOAD_TIMEOUT_MS = 6000;
 const material = (color, roughness = 0.86, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness, ...extra });
+
+function loadGLTFWithTimeout(url) {
+  let timeoutId;
+  const timeout = new Promise((_, reject) => {
+    timeoutId = window.setTimeout(
+      () => reject(new Error(`Timed out loading ${url} after ${GLTF_LOAD_TIMEOUT_MS} ms.`)),
+      GLTF_LOAD_TIMEOUT_MS,
+    );
+  });
+  return Promise.race([loader.loadAsync(url), timeout]).finally(() => window.clearTimeout(timeoutId));
+}
 
 const mats = {
   grass: material(0x67b87d),
@@ -785,7 +797,7 @@ function chooseIdleClip(clips) {
 
 async function loadAnimatedModel(url, position, targetHeight, kind) {
   try {
-    const gltf = await loader.loadAsync(url);
+    const gltf = await loadGLTFWithTimeout(url);
     const model = gltf.scene;
     const bounds = new THREE.Box3().setFromObject(model);
     const size = bounds.getSize(new THREE.Vector3());
@@ -940,9 +952,9 @@ function playPlayerAnimation(name, fade = 0.18) {
 }
 
 async function loadPlayerAvatar() {
-  const url = "./assets/sunny-3d/Animated%20Woman%20by%20Quaternius%20-%20qJ2gsTUBHL.glb";
+  const url = "./assets/sunny-3d/models/neen-player.glb";
   try {
-    const gltf = await loader.loadAsync(url);
+    const gltf = await loadGLTFWithTimeout(url);
     const model = gltf.scene;
     const bounds = new THREE.Box3().setFromObject(model);
     const size = bounds.getSize(new THREE.Vector3());
@@ -1082,7 +1094,7 @@ function clearGeneratedVisual(group) {
 
 async function loadEnemyModel(path, enemy, targetHeight) {
   try {
-    const gltf = await loader.loadAsync(path);
+    const gltf = await loadGLTFWithTimeout(path);
     const model = gltf.scene;
     const bounds = new THREE.Box3().setFromObject(model);
     const size = bounds.getSize(new THREE.Vector3());
@@ -1663,7 +1675,7 @@ async function loadEquippedPet() {
     : key === "pet_snoop_cyber" ? "fox.glb" : null;
   if (!filename) return;
   try {
-    const gltf = await loader.loadAsync(`./assets/sunny-3d/models/${filename}`);
+    const gltf = await loadGLTFWithTimeout(`./assets/sunny-3d/models/${filename}`);
     if (version !== gameState.petLoadVersion) return;
     const model = gltf.scene;
     const bounds = new THREE.Box3().setFromObject(model);
@@ -2573,7 +2585,7 @@ async function loadIslandAssets(enemyLoads) {
   ];
   const staticLoads = assetPlan.map(async (asset) => {
     try {
-      const gltf = await loader.loadAsync(asset.path);
+      const gltf = await loadGLTFWithTimeout(asset.path);
       placeAssetNature(gltf, asset.positions, asset.height);
       return true;
     } catch (error) {
