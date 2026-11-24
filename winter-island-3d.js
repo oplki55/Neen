@@ -12,7 +12,14 @@ if (!(canvas instanceof HTMLCanvasElement)) {
   throw new Error("Winter Island 3D canvas is missing.");
 }
 
-const WORLD = { width: 150, depth: 150, scale: 10 };
+const BASE_WORLD_SIZE = 150;
+const MAP_SCALE = 2.3;
+const WORLD_EXPANSION = MAP_SCALE / 1.5;
+const WORLD = {
+  width: BASE_WORLD_SIZE * WORLD_EXPANSION,
+  depth: BASE_WORLD_SIZE * WORLD_EXPANSION,
+  scale: 10,
+};
 const GROUND_Y = 0.82;
 const PLAYER_COLLISION_RADIUS = 0.72;
 const CAMERA_OFFSET = new THREE.Vector3(0, 6.3, 12.5);
@@ -23,12 +30,20 @@ const CAMERA_DRAG_SENSITIVITY = 0.006;
 const CAMERA_PITCH_DRAG_SENSITIVITY = 0.004;
 const CAMERA_KEY_TURN_SPEED = 2.2;
 const CAMERA_KEY_HOLD_DELAY = 180;
+function expandWorldCoordinate(coordinate) {
+  return WORLD.width / 2 + (coordinate - BASE_WORLD_SIZE / 2) * WORLD_EXPANSION;
+}
+
+function expandWorldPoint(point) {
+  return { ...point, x: expandWorldCoordinate(point.x), z: expandWorldCoordinate(point.z) };
+}
+
 const ZONES = [
   { name: "Blue Camp / North Ridge", color: 0x77c8e8, x: 39, z: 37 },
   { name: "Pine Line / West Outpost", color: 0x74a7b7, x: 39, z: 112 },
   { name: "Supply Depot / East Icefield", color: 0x9bcae5, x: 111, z: 112 },
   { name: "Bunker Front / South Ridge", color: 0x789bac, x: 111, z: 37 },
-];
+].map(expandWorldPoint);
 const ZONE_ORDER = ["neon_pier", "palm_grove", "loot_canyon", "sunset_ridge"];
 const ZONE_TITLES = Object.fromEntries(ZONE_ORDER.map((id, index) => [id, ZONES[index].name]));
 const ZONE_CENTERS = Object.fromEntries(ZONE_ORDER.map((id, index) => [id, { x: ZONES[index].x, z: ZONES[index].z }]));
@@ -46,21 +61,21 @@ const PICKUPS = [
   { id: "neon_relic", zone: "loot_canyon", x: 128, z: 123 },
   { id: "drift_token", zone: "sunset_ridge", x: 98, z: 28 },
   { id: "canyon_sticker", zone: "sunset_ridge", x: 128, z: 48 },
-];
+].map(expandWorldPoint);
 const BEACONS = [
   { id: "pier-beacon-a", zone: "neon_pier", x: 27, z: 43 },
   { id: "pier-beacon-b", zone: "neon_pier", x: 49, z: 31 },
-];
+].map(expandWorldPoint);
 const GUARDIAN_DEFS = [
   { id: "guardian_pier", zone: "neon_pier", x: 54, z: 53, name: "North Ridge Guardian", hp: 8, color: 0x58788b, accent: 0x86e7ff },
   { id: "guardian_grove", zone: "palm_grove", x: 52, z: 117, name: "Pine Line Guardian", hp: 8, color: 0x4b6670, accent: 0xa2e9db },
   { id: "guardian_canyon", zone: "loot_canyon", x: 123, z: 96, name: "Icefield Sentinel", hp: 10, color: 0x496b8b, accent: 0x9ce5ff },
   { id: "guardian_ridge", zone: "sunset_ridge", x: 98, z: 57, name: "Arctic Bunker Boss", hp: 24, color: 0x38536b, accent: 0xffd77e, boss: true },
-];
+].map(expandWorldPoint);
 const DRONE_DEFS = [
   { id: "drone_small", zone: "palm_grove", x: 56, z: 96, name: "West Patrol Drone", hp: 5, color: 0x57b8d5, accent: 0xc3f9ff, kind: "small" },
   { id: "drone_flying", zone: "sunset_ridge", x: 126, z: 31, name: "Arctic Scout Drone", hp: 4, color: 0x57b8d5, accent: 0xc3f9ff, kind: "flying" },
-];
+].map(expandWorldPoint);
 const WEAPON_STATS = {
   wand: { cooldown: 0.26, damage: 1, speed: 42, range: 48, color: 0xff78bd },
   mp40: { cooldown: 0.105, damage: 1, speed: 50, range: 42, color: 0x70e4ff },
@@ -80,8 +95,8 @@ const isCoarse = window.matchMedia("(pointer: coarse)").matches;
 const keyState = new Set();
 const touchInput = { x: 0, z: 0 };
 const playerState = {
-  x: 74,
-  z: 14,
+  x: expandWorldCoordinate(74),
+  z: expandWorldCoordinate(14),
   y: 0,
   vy: 0,
   direction: new THREE.Vector3(0, 0, -1),
@@ -566,40 +581,41 @@ function setupRenderer() {
 }
 
 function buildWinterOcean() {
+  const center = WORLD.width / 2;
   const water = new THREE.Mesh(
-    new THREE.PlaneGeometry(460, 460),
+    new THREE.PlaneGeometry(460 * WORLD_EXPANSION, 460 * WORLD_EXPANSION),
     new THREE.MeshBasicMaterial({ color: 0x4c9bb6 }),
   );
   water.rotation.x = -Math.PI / 2;
-  water.position.set(75, -2.5, 75);
+  water.position.set(center, -2.5 * WORLD_EXPANSION, center);
   scene.add(water);
 
   const iceShelf = new THREE.Mesh(
-    new THREE.CylinderGeometry(74, 79, 3.2, 64),
+    new THREE.CylinderGeometry(74 * WORLD_EXPANSION, 79 * WORLD_EXPANSION, 3.2 * WORLD_EXPANSION, 64),
     material(0x7796a4, 0.95),
   );
-  iceShelf.position.set(75, -1.05, 75);
+  iceShelf.position.set(center, -1.05 * WORLD_EXPANSION, center);
   scene.add(iceShelf);
 
   const iceRing = new THREE.Mesh(
-    new THREE.TorusGeometry(77, 1.1, 5, 96),
+    new THREE.TorusGeometry(77 * WORLD_EXPANSION, 1.1 * WORLD_EXPANSION, 5, 96),
     material(0xdff8ff, 0.78),
   );
   iceRing.rotation.x = Math.PI / 2;
-  iceRing.position.set(75, -0.5, 75);
+  iceRing.position.set(center, -0.5 * WORLD_EXPANSION, center);
   scene.add(iceRing);
 
   for (let index = 0; index < 32; index += 1) {
     const angle = (index / 32) * Math.PI * 2;
-    const radius = 87 + (index % 4) * 8;
+    const radius = (87 + (index % 4) * 8) * WORLD_EXPANSION;
     const floe = new THREE.Mesh(
-      new THREE.DodecahedronGeometry(2.2 + (index % 3) * 1.15, 0),
+      new THREE.DodecahedronGeometry((2.2 + (index % 3) * 1.15) * WORLD_EXPANSION, 0),
       material(index % 3 === 0 ? 0xbce7f1 : 0x87bdcd, 0.78),
     );
     floe.position.set(
-      75 + Math.cos(angle) * radius,
-      -1.2 + (index % 3) * 0.18,
-      75 + Math.sin(angle) * radius,
+      center + Math.cos(angle) * radius,
+      (-1.2 + (index % 3) * 0.18) * WORLD_EXPANSION,
+      center + Math.sin(angle) * radius,
     );
     floe.scale.set(1.35, 0.34, 0.9);
     floe.rotation.y = angle * 0.7;
@@ -608,9 +624,9 @@ function buildWinterOcean() {
 
   const snowPositions = new Float32Array(220 * 3);
   for (let index = 0; index < 220; index += 1) {
-    snowPositions[index * 3] = 4 + Math.random() * 142;
+    snowPositions[index * 3] = expandWorldCoordinate(4 + Math.random() * 142);
     snowPositions[index * 3 + 1] = 4 + Math.random() * 38;
-    snowPositions[index * 3 + 2] = 4 + Math.random() * 142;
+    snowPositions[index * 3 + 2] = expandWorldCoordinate(4 + Math.random() * 142);
   }
   const snowGeometry = new THREE.BufferGeometry();
   snowGeometry.setAttribute("position", new THREE.BufferAttribute(snowPositions, 3));
@@ -632,28 +648,35 @@ function updateFallingSnow(delta) {
     positions.array[index * 3 + 1] -= delta * (2.1 + (index % 5) * 0.18);
     positions.array[index * 3 + 2] += Math.cos(index * 0.41) * delta * 0.2;
     if (positions.array[index * 3 + 1] < 0.6) {
-      positions.array[index * 3] = 4 + Math.random() * 142;
+      positions.array[index * 3] = expandWorldCoordinate(4 + Math.random() * 142);
       positions.array[index * 3 + 1] = 32 + Math.random() * 14;
-      positions.array[index * 3 + 2] = 4 + Math.random() * 142;
+      positions.array[index * 3 + 2] = expandWorldCoordinate(4 + Math.random() * 142);
     }
   }
   positions.needsUpdate = true;
 }
 
 function addWinterMapColliders(map) {
-  const solidNames = new Set([
-    "Cover_Sandbags",
-    "Cover_TankTraps",
-    "Cover_BarbedWire",
-    "Pines",
-    "Bunker_Shell",
+  const colliderSettings = new Map([
+    ["Cover_Sandbags", { spacing: 1.2, radius: 0.36 }],
+    ["Cover_TankTraps", { spacing: 1.25, radius: 0.32 }],
+    ["Cover_BarbedWire", { spacing: 1.4, radius: 0.24 }],
+    ["Pines", { spacing: 1.5, radius: 0.42 }],
+    ["Bunker_Shell", { spacing: 1, radius: 0.34 }],
   ]);
-  const spacing = 1.45;
-  const colliderBuckets = new Map();
   map.updateWorldMatrix(true, true);
+  const doorways = ["Bunker_Door_East", "Bunker_Door_West"]
+    .map((name) => map.getObjectByName(name))
+    .filter(Boolean)
+    .map((door) => door.getWorldPosition(new THREE.Vector3()));
+  const doorwayClearance = 3.2 * WORLD_EXPANSION;
+  const initialColliderCount = worldColliders.length;
 
   map.traverse((node) => {
-    if (!solidNames.has(node.name) || !node.isMesh) return;
+    const settings = colliderSettings.get(node.name);
+    if (!settings || !node.isMesh) return;
+    const spacing = settings.spacing * WORLD_EXPANSION;
+    const colliderBuckets = new Map();
     const positions = node.geometry.getAttribute("position");
     if (!positions) return;
     const vertex = new THREE.Vector3();
@@ -672,12 +695,14 @@ function addWinterMapColliders(map) {
       bucket.z += vertex.z;
       bucket.count += 1;
     }
+    for (const bucket of colliderBuckets.values()) {
+      const x = bucket.x / bucket.count;
+      const z = bucket.z / bucket.count;
+      if (doorways.some((door) => Math.hypot(x - door.x, z - door.z) < doorwayClearance)) continue;
+      addWorldCollider(x, z, settings.radius * WORLD_EXPANSION);
+    }
   });
-
-  for (const bucket of colliderBuckets.values()) {
-    addWorldCollider(bucket.x / bucket.count, bucket.z / bucket.count, spacing * 0.68);
-  }
-  if (colliderBuckets.size === 0) {
+  if (worldColliders.length === initialColliderCount) {
     throw new Error("The snowy bunker map has no usable obstacle geometry for collision generation.");
   }
 }
@@ -691,14 +716,31 @@ async function loadWinterBattleMap() {
     const terrain = map.getObjectByName("Snow_Base");
     if (!terrain) throw new Error("The snowy bunker map has no Snow_Base ground node.");
     const terrainBounds = new THREE.Box3().setFromObject(terrain);
-    map.scale.setScalar(1.5);
+    map.scale.setScalar(MAP_SCALE);
     map.position.set(
-      75 - center.x * 1.5,
-      0.55 - terrainBounds.max.y * 1.5,
-      75 - center.z * 1.5,
+      WORLD.width / 2 - center.x * MAP_SCALE,
+      0.55 - terrainBounds.max.y * MAP_SCALE,
+      WORLD.depth / 2 - center.z * MAP_SCALE,
     );
     map.name = "WinterBunkerBattleMap";
     map.updateMatrixWorld(true);
+    const offsetSurfaceNames = new Set(["Snow_Drifts", "Pond_Ice", "Bunker_Interior"]);
+    map.traverse((node) => {
+      if (!node.isMesh) return;
+      node.castShadow = false;
+      if (node.name === "Snow_Base" || offsetSurfaceNames.has(node.name)) node.receiveShadow = false;
+      if (!offsetSurfaceNames.has(node.name)) return;
+      const offsetMaterial = (source) => {
+        const target = source.clone();
+        target.polygonOffset = true;
+        target.polygonOffsetFactor = -1;
+        target.polygonOffsetUnits = -1;
+        return target;
+      };
+      node.material = Array.isArray(node.material)
+        ? node.material.map(offsetMaterial)
+        : offsetMaterial(node.material);
+    });
     addWinterMapColliders(map);
     scene.add(map);
     return true;
@@ -708,18 +750,20 @@ async function loadWinterBattleMap() {
       ? "تعذر تحميل خريطة المخبأ؛ يجري استخدام ساحة ثلجية بديلة."
       : "The bunker map could not load; a snowy fallback battleground is active.", 0);
     const fallback = new THREE.Mesh(
-      new THREE.PlaneGeometry(145, 145),
+      new THREE.PlaneGeometry(145 * WORLD_EXPANSION, 145 * WORLD_EXPANSION),
       material(0xddebf0),
     );
     fallback.rotation.x = -Math.PI / 2;
-    fallback.position.set(75, 0.53, 75);
+    fallback.position.set(WORLD.width / 2, 0.53, WORLD.depth / 2);
     scene.add(fallback);
     const wallMaterial = material(0x708c9b);
     for (const [x, z, width, depth] of [
       [75, 52, 33, 2], [75, 98, 33, 2], [57, 75, 2, 22], [93, 75, 2, 22],
     ]) {
-      box(scene, [width, 5, depth], [x, 3, z], wallMaterial);
-      addWorldCollider(x, z, Math.max(width, depth) * 0.48);
+      const worldX = expandWorldCoordinate(x);
+      const worldZ = expandWorldCoordinate(z);
+      box(scene, [width * WORLD_EXPANSION, 5, depth * WORLD_EXPANSION], [worldX, 3, worldZ], wallMaterial);
+      addWorldCollider(worldX, worldZ, Math.max(width, depth) * 0.36 * WORLD_EXPANSION);
     }
     return false;
   }
@@ -728,7 +772,7 @@ async function loadWinterBattleMap() {
 function buildWinterZoneMarkers() {
   ZONES.forEach((zone, index) => {
     const marker = new THREE.Mesh(
-      new THREE.TorusGeometry(7.5, 0.12, 5, 48),
+      new THREE.TorusGeometry(7.5 * WORLD_EXPANSION, 0.12, 5, 48),
       new THREE.MeshBasicMaterial({ color: zone.color, transparent: true, opacity: 0.55 }),
     );
     marker.rotation.x = Math.PI / 2;
@@ -749,10 +793,17 @@ function resizeRenderer() {
   if (!renderer) return;
   const bounds = canvas.getBoundingClientRect();
   const dprCap = isCoarse ? 1.1 : 1.5;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dprCap));
-  renderer.setSize(Math.max(1, bounds.width), Math.max(1, bounds.height), false);
+  const pixelRatio = Math.min(window.devicePixelRatio || 1, dprCap);
+  const width = Math.max(1, Math.round(bounds.width));
+  const height = Math.max(1, Math.round(bounds.height));
+  if (renderer.getPixelRatio() !== pixelRatio) renderer.setPixelRatio(pixelRatio);
+  const expectedBufferWidth = Math.floor(width * pixelRatio);
+  const expectedBufferHeight = Math.floor(height * pixelRatio);
+  if (canvas.width !== expectedBufferWidth || canvas.height !== expectedBufferHeight) {
+    renderer.setSize(width, height, false);
+  }
   if (camera) {
-    camera.aspect = Math.max(1, bounds.width) / Math.max(1, bounds.height);
+    camera.aspect = width / height;
     camera.updateProjectionMatrix();
   }
 }
@@ -1437,10 +1488,12 @@ function buildSupplyCrate() {
   box(root, [2.4, 2, 2.4], [0, 1.1, 0], mats.wood);
   box(root, [2.48, 0.18, 0.2], [0, 1.1, -1.22], mats.gold);
   box(root, [0.2, 2.1, 2.48], [0, 1.1, 0], mats.paleWood);
-  root.position.set(120, 0.55, 120);
+  const x = expandWorldCoordinate(120);
+  const z = expandWorldCoordinate(120);
+  root.position.set(x, 0.55, z);
   scene.add(root);
-  addWorldCollider(120, 120, 1.75);
-  supplyCrate = { root, position: new THREE.Vector3(120, 0.55, 120), openedUntil: 0 };
+  addWorldCollider(x, z, 1.75);
+  supplyCrate = { root, position: new THREE.Vector3(x, 0.55, z), openedUntil: 0 };
 }
 
 function buildInteractiveWorld() {
@@ -1450,8 +1503,8 @@ function buildInteractiveWorld() {
   GUARDIAN_DEFS.forEach(createCombatEnemy);
   const droneSmall = createCombatEnemy(DRONE_DEFS[0]);
   const droneFlying = createCombatEnemy(DRONE_DEFS[1]);
-  spawnCombatDrop("medkit", { x: 43, z: 31 });
-  spawnCombatDrop("shield", { x: 108, z: 106 });
+  spawnCombatDrop("medkit", { x: expandWorldCoordinate(43), z: expandWorldCoordinate(31) });
+  spawnCombatDrop("shield", { x: expandWorldCoordinate(108), z: expandWorldCoordinate(106) });
   return [
     loadEnemyModel("./assets/sunny-3d/models/enemy-small.glb", droneSmall, 3.1),
     loadEnemyModel("./assets/sunny-3d/models/enemy-flying.glb", droneFlying, 3.5),
@@ -2693,14 +2746,16 @@ function movePlayerWithCollisions(dx, dz) {
         nextZ += (offsetZ / distanceToCollider) * pushOut;
       }
     }
-    playerState.x = THREE.MathUtils.clamp(nextX, 7, WORLD.width - 7);
-    playerState.z = THREE.MathUtils.clamp(nextZ, 7, WORLD.depth - 7);
+    const edgeMargin = 7 * WORLD_EXPANSION;
+    playerState.x = THREE.MathUtils.clamp(nextX, edgeMargin, WORLD.width - edgeMargin);
+    playerState.z = THREE.MathUtils.clamp(nextZ, edgeMargin, WORLD.depth - edgeMargin);
   }
 }
 
 function zoneAtPosition() {
-  if (playerState.x < 75) return playerState.z < 75 ? "neon_pier" : "palm_grove";
-  return playerState.z < 75 ? "sunset_ridge" : "loot_canyon";
+  const center = WORLD.width / 2;
+  if (playerState.x < center) return playerState.z < center ? "neon_pier" : "palm_grove";
+  return playerState.z < center ? "sunset_ridge" : "loot_canyon";
 }
 
 function updateAdventureButtonState() {
@@ -2723,8 +2778,8 @@ function updatePlayer(delta) {
     gameState.hp = gameState.maxHp;
     gameState.shield = gameState.maxShield;
     gameState.invulnerableUntil = now + 2400;
-    playerState.x = 74;
-    playerState.z = 14;
+    playerState.x = expandWorldCoordinate(74);
+    playerState.z = expandWorldCoordinate(14);
     playerState.jumpOffset = 0;
     playerState.vy = 0;
     activeZoneId = "neon_pier";
@@ -2743,8 +2798,9 @@ function updatePlayer(delta) {
     movePlayerWithCollisions(move.x * speed * delta, move.z * speed * delta);
   }
   playerState.dashTime = knockedDown ? 0 : Math.max(0, playerState.dashTime - delta);
-  playerState.x = THREE.MathUtils.clamp(playerState.x, 7, WORLD.width - 7);
-  playerState.z = THREE.MathUtils.clamp(playerState.z, 7, WORLD.depth - 7);
+  const edgeMargin = 7 * WORLD_EXPANSION;
+  playerState.x = THREE.MathUtils.clamp(playerState.x, edgeMargin, WORLD.width - edgeMargin);
+  playerState.z = THREE.MathUtils.clamp(playerState.z, edgeMargin, WORLD.depth - edgeMargin);
 
   if (!knockedDown) playerState.vy -= 19 * delta;
   playerState.jumpOffset = Math.max(0, playerState.jumpOffset + playerState.vy * delta);
@@ -3020,8 +3076,8 @@ function render(time) {
 async function loadIslandAssets(enemyLoads) {
   const actorLoads = [
     loadPlayerAvatar(),
-    loadAnimatedModel("./assets/sunny-3d/models/deer.glb", [105, 127], 3.1, "pet"),
-    loadAnimatedModel("./assets/sunny-3d/models/fox.glb", [31, 119], 2.5, "pet"),
+    loadAnimatedModel("./assets/sunny-3d/models/deer.glb", [expandWorldCoordinate(105), expandWorldCoordinate(127)], 3.1, "pet"),
+    loadAnimatedModel("./assets/sunny-3d/models/fox.glb", [expandWorldCoordinate(31), expandWorldCoordinate(119)], 2.5, "pet"),
   ];
   await Promise.all([...actorLoads, ...enemyLoads]);
   if (message.textContent === "Loading the island…") message.textContent = "";
@@ -3062,12 +3118,14 @@ function init() {
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xb9dce8);
-  scene.fog = new THREE.Fog(0xb9dce8, 145, 275);
-  camera = new THREE.PerspectiveCamera(54, 1, 0.1, 320);
+  scene.fog = new THREE.Fog(0xb9dce8, 145 * WORLD_EXPANSION, 275 * WORLD_EXPANSION);
+  camera = new THREE.PerspectiveCamera(54, 1, 0.5, 550);
 
   scene.add(new THREE.HemisphereLight(0xe4f6ff, 0x526d7a, 2.5));
   const sun = new THREE.DirectionalLight(0xe8f5ff, 3.1);
   sun.position.set(-30, 85, 20);
+  sun.shadow.bias = -0.00015;
+  sun.shadow.normalBias = 0.025;
   scene.add(sun);
   void initializeWinterWorld().catch((error) => {
     console.error("Winter Island 3D could not be initialized.", error);
