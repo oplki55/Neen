@@ -14,6 +14,7 @@ if (!(canvas instanceof HTMLCanvasElement)) {
 
 const WORLD = { width: 160, depth: 100, scale: 10 };
 const GROUND_Y = 0.76;
+const PLAYER_COLLISION_RADIUS = 0.72;
 const ZONES = [
   { name: "Rim Nam Docks / Moonlit Bay", color: 0x41c5c6, x: 35, z: 77 },
   { name: "Peak Ruins / Crownleaf Manor", color: 0x7aaa68, x: 58, z: 34 },
@@ -76,6 +77,7 @@ const playerState = {
   jumpOffset: 0,
 };
 const animated = [];
+const worldColliders = [];
 const projectiles = [];
 const enemies = [];
 const enemyProjectiles = [];
@@ -503,6 +505,10 @@ function box(parent, size, position, meshMaterial, rotationY = 0) {
   return mesh;
 }
 
+function addWorldCollider(x, z, radius, options = {}) {
+  worldColliders.push({ x, z, radius, ...options });
+}
+
 function addPath(start, end, width, meshMaterial, y = 0.58) {
   const dx = end.x - start.x;
   const dz = end.z - start.z;
@@ -588,6 +594,7 @@ function buildOcean() {
     rock.position.set(80 + Math.cos(angle) * radius, -0.75, 50 + Math.sin(angle) * radius * 0.68);
     rock.scale.y = 0.6;
     scene.add(rock);
+    addWorldCollider(rock.position.x, rock.position.z, 1.8 + (i % 2) * 0.35);
   }
 
   const sun = new THREE.Mesh(
@@ -641,10 +648,12 @@ function buildBayLandmark() {
   for (const x of [7.6, 16.8, 24.7]) {
     const piling = addMesh(dock, new THREE.CylinderGeometry(0.13, 0.18, 1.7, 6), mats.wood, [x, 0.1, 84.4]);
     piling.position.y = -0.03;
+    addWorldCollider(x, 84.4, 0.42);
   }
 
   const hutX = 28;
   const hutZ = 75;
+  addWorldCollider(hutX, hutZ, 4.45);
   box(scene, [7, 3.8, 6], [hutX, 2.1, hutZ], mats.cream);
   const roof = addMesh(scene, new THREE.ConeGeometry(5.1, 3.2, 4), mats.roof, [hutX, 5.55, hutZ]);
   roof.rotation.y = Math.PI / 4;
@@ -658,10 +667,14 @@ function buildManorLandmark() {
   for (const offset of [-8, 0, 8]) {
     const column = addMesh(scene, new THREE.CylinderGeometry(0.7, 0.9, 6, 8), mats.stone, [x + offset, 3.8, z - 2]);
     column.rotation.z = offset === 8 ? 0.035 : 0;
+    addWorldCollider(x + offset, z - 2, 1.1);
   }
   box(scene, [18, 1.05, 4.3], [x, 7, z - 2], mats.stone);
   box(scene, [2.4, 5.4, 1], [x - 11, 3.3, z + 6], mats.darkStone);
   box(scene, [2.4, 5.4, 1], [x + 11, 3.3, z + 6], mats.stone);
+  addWorldCollider(x - 11, z + 6, 1.4);
+  addWorldCollider(x + 11, z + 6, 1.4);
+  for (const wallX of [x - 6, x, x + 6]) addWorldCollider(wallX, z + 6, 1.45);
   box(scene, [24, 0.85, 1.2], [x, 6.1, z + 6], mats.stone);
   const top = addMesh(scene, new THREE.ConeGeometry(4.5, 4, 4), mats.roof, [x + 14, 8, z + 6]);
   top.rotation.y = Math.PI / 4;
@@ -670,6 +683,7 @@ function buildManorLandmark() {
 function buildFactoryLandmark() {
   const x = 118;
   const z = 72;
+  addWorldCollider(x - 8, z - 6, 7.3);
   box(scene, [12, 4.5, 9], [x - 8, 2.6, z - 6], mats.darkStone);
   box(scene, [13, 1.2, 10], [x - 8, 5.25, z - 6], mats.roof);
   box(scene, [3, 7, 3], [x - 14, 4, z - 11], mats.darkStone);
@@ -690,6 +704,7 @@ function buildFactoryLandmark() {
         crateColors[(row + col) % crateColors.length],
       );
       crate.rotation.y = (col - row) * 0.07;
+      addWorldCollider(x + 4 + col * 4, z + 4, 1.85);
       box(scene, [3.4, 0.18, 0.18], [x + 4 + col * 4, 2.1 + row * 3.1, z + 2.35], mats.cream);
     }
   }
@@ -698,6 +713,7 @@ function buildFactoryLandmark() {
 function buildClockTower() {
   const x = 133;
   const z = 24;
+  addWorldCollider(x, z, 5.4);
   addMesh(scene, new THREE.CylinderGeometry(5, 6.4, 1.2, 8), mats.darkStone, [x, 1.45, z]);
   addMesh(scene, new THREE.CylinderGeometry(3.9, 4.6, 10, 8), mats.stone, [x, 6.8, z]);
   addMesh(scene, new THREE.CylinderGeometry(4.4, 4.4, 0.6, 8), mats.darkStone, [x, 11.8, z]);
@@ -721,6 +737,7 @@ function buildClockTower() {
 }
 
 function createProceduralTree(position, variant = 0) {
+  addWorldCollider(position[0], position[1], 1.25);
   const tree = new THREE.Group();
   const trunk = addMesh(tree, new THREE.CylinderGeometry(0.28, 0.48, 3.1, 6), mats.wood, [0, 1.45, 0]);
   trunk.rotation.z = variant % 2 ? 0.08 : 0;
@@ -739,6 +756,7 @@ function createProceduralTree(position, variant = 0) {
 }
 
 function createProceduralBush(position, variant = 0) {
+  addWorldCollider(position[0], position[1], 1.05, { jumpable: true, jumpClearance: 0.82 });
   const bush = new THREE.Group();
   for (let i = 0; i < 3; i += 1) {
     addMesh(
@@ -768,6 +786,10 @@ function placeAssetNature(gltf, positions, targetHeight) {
   const sourceVariants = gltf.scene.children.filter((child) => child.isMesh || child.children.length);
   if (sourceVariants.length === 0) throw new Error("Nature model contains no visible objects.");
   positions.forEach((position, index) => {
+    const isBush = targetHeight <= 2.5;
+    addWorldCollider(position[0], position[1], isBush ? 1.05 : 1.35, isBush
+      ? { jumpable: true, jumpClearance: 0.82 }
+      : {});
     const source = sourceVariants[index % sourceVariants.length];
     const prop = normalizeStaticModel(source, targetHeight * (0.82 + (index % 3) * 0.1));
     prop.position.add(new THREE.Vector3(position[0], 0.54, position[1]));
@@ -1137,6 +1159,7 @@ function createWorldPickup(pickup) {
 
 function createBeacon(beacon) {
   const group = new THREE.Group();
+  addWorldCollider(beacon.x, beacon.z, 0.72);
   addMesh(group, new THREE.CylinderGeometry(0.28, 0.44, 2.8, 8), mats.darkStone, [0, 1.45, 0]);
   const crystal = addMesh(
     group,
@@ -1161,6 +1184,7 @@ function buildSupplyCrate() {
   box(root, [0.2, 2.1, 2.48], [0, 1.1, 0], mats.paleWood);
   root.position.set(127, 0.55, 61);
   scene.add(root);
+  addWorldCollider(127, 61, 1.75);
   supplyCrate = { root, position: new THREE.Vector3(127, 0.55, 61), openedUntil: 0 };
 }
 
@@ -2239,11 +2263,79 @@ function resolveTelegraph(telegraph) {
 }
 
 function readMovement() {
-  const x = Number(keyState.has("d") || keyState.has("arrowright")) - Number(keyState.has("a") || keyState.has("arrowleft")) + touchInput.x;
-  const z = Number(keyState.has("s") || keyState.has("arrowdown")) - Number(keyState.has("w") || keyState.has("arrowup")) + touchInput.z;
-  const direction = new THREE.Vector3(x, 0, z);
+  const horizontal = Number(keyState.has("d") || keyState.has("arrowright"))
+    - Number(keyState.has("a") || keyState.has("arrowleft")) + touchInput.x;
+  const vertical = Number(keyState.has("w") || keyState.has("arrowup"))
+    - Number(keyState.has("s") || keyState.has("arrowdown")) - touchInput.z;
+  const cameraForward = new THREE.Vector3(
+    playerState.x - camera.position.x,
+    0,
+    playerState.z - camera.position.z,
+  );
+  if (cameraForward.lengthSq() < 0.0001) cameraForward.copy(playerState.direction).setY(0);
+  cameraForward.normalize();
+  const cameraRight = new THREE.Vector3().crossVectors(cameraForward, new THREE.Vector3(0, 1, 0)).normalize();
+  const direction = cameraRight.multiplyScalar(horizontal).addScaledVector(cameraForward, vertical);
   if (direction.lengthSq() > 1) direction.normalize();
   return direction;
+}
+
+function getPlayerColliders() {
+  const colliders = worldColliders.filter((collider) => (
+    !collider.jumpable || playerState.jumpOffset < collider.jumpClearance
+  ));
+  for (const enemy of enemies) {
+    if (!enemy.alive) continue;
+    colliders.push({
+      x: enemy.root.position.x,
+      z: enemy.root.position.z,
+      radius: enemy.boss ? 3 : enemy.id.startsWith("guardian_") ? 2.15 : 1.2,
+    });
+  }
+  return colliders;
+}
+
+function movePlayerWithCollisions(dx, dz) {
+  const distance = Math.hypot(dx, dz);
+  const steps = Math.max(1, Math.ceil(distance / 0.35));
+  const stepX = dx / steps;
+  const stepZ = dz / steps;
+  const colliders = getPlayerColliders();
+
+  for (let step = 0; step < steps; step += 1) {
+    let nextX = playerState.x + stepX;
+    let nextZ = playerState.z + stepZ;
+    for (let pass = 0; pass < 2; pass += 1) {
+      for (const collider of colliders) {
+        const minDistance = PLAYER_COLLISION_RADIUS + collider.radius;
+        let offsetX = nextX - collider.x;
+        let offsetZ = nextZ - collider.z;
+        let distanceSquared = offsetX * offsetX + offsetZ * offsetZ;
+        if (distanceSquared >= minDistance * minDistance) continue;
+        if (distanceSquared < 0.0001) {
+          offsetX = -stepX;
+          offsetZ = -stepZ;
+          distanceSquared = offsetX * offsetX + offsetZ * offsetZ;
+          if (distanceSquared < 0.0001) {
+            offsetX = playerState.x - collider.x;
+            offsetZ = playerState.z - collider.z;
+            distanceSquared = offsetX * offsetX + offsetZ * offsetZ;
+          }
+          if (distanceSquared < 0.0001) {
+            offsetX = 1;
+            offsetZ = 0;
+            distanceSquared = 1;
+          }
+        }
+        const distanceToCollider = Math.sqrt(distanceSquared);
+        const pushOut = minDistance - distanceToCollider + 0.001;
+        nextX += (offsetX / distanceToCollider) * pushOut;
+        nextZ += (offsetZ / distanceToCollider) * pushOut;
+      }
+    }
+    playerState.x = THREE.MathUtils.clamp(nextX, 7, WORLD.width - 7);
+    playerState.z = THREE.MathUtils.clamp(nextZ, 7, WORLD.depth - 7);
+  }
 }
 
 function zoneAtPosition() {
@@ -2285,8 +2377,7 @@ function updatePlayer(delta) {
   if (!knockedDown && move.lengthSq() > 0.01) {
     playerState.direction.copy(move).normalize();
     const speed = playerState.dashTime > 0 ? 31 : 11;
-    playerState.x += move.x * speed * delta;
-    playerState.z += move.z * speed * delta;
+    movePlayerWithCollisions(move.x * speed * delta, move.z * speed * delta);
   }
   playerState.dashTime = knockedDown ? 0 : Math.max(0, playerState.dashTime - delta);
   playerState.x = THREE.MathUtils.clamp(playerState.x, 7, WORLD.width - 7);
@@ -2300,7 +2391,12 @@ function updatePlayer(delta) {
   }
 
   player.position.set(playerState.x, GROUND_Y + playerState.jumpOffset, playerState.z);
-  player.rotation.y = Math.atan2(playerState.direction.x, -playerState.direction.z);
+  const targetRotation = Math.atan2(playerState.direction.x, -playerState.direction.z);
+  const rotationDelta = Math.atan2(
+    Math.sin(targetRotation - player.rotation.y),
+    Math.cos(targetRotation - player.rotation.y),
+  );
+  player.rotation.y += rotationDelta * (1 - Math.exp(-14 * delta));
   aura.rotation.z += delta * 0.55;
   weapon.rotation.z = Math.sin(now * 0.002) * 0.045;
   player.visible = now >= gameState.invulnerableUntil || Math.floor(now / 90) % 2 === 0;
@@ -2631,6 +2727,12 @@ function init() {
   buildClockTower();
   const enemyLoads = buildInteractiveWorld();
   player = makeCharacter();
+  camera.position.set(
+    playerState.x - playerState.direction.x * 12.5,
+    player.position.y + 6.3,
+    playerState.z - playerState.direction.z * 12.5,
+  );
+  camera.lookAt(player.position.x, player.position.y + 1.7, player.position.z);
   localizeStaticLabels();
   bindControls();
   window.addEventListener("resize", resizeRenderer);
